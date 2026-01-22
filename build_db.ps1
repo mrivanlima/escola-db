@@ -6,6 +6,11 @@ param(
     [string]$Password
 )
 
+# Configure UTF-8 encoding for proper character display
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001 | Out-Null
+
 $ErrorActionPreference = "Continue"
 
 # Load credentials from config file if not provided
