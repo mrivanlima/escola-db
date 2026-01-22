@@ -241,6 +241,26 @@ erDiagram
         TIMESTAMPTZ deleted_at
     }
     
+    activity_resources {
+        INTEGER resource_id PK
+        UUID resource_uuid UK
+        INTEGER activity_id FK
+        TEXT resource_name
+        TEXT resource_name_normalized
+        TEXT resource_type
+        UUID media_file_id FK
+        INTEGER display_order
+        BOOLEAN is_required
+        TEXT usage_context
+        JSONB resource_config
+        BOOLEAN is_published
+        TIMESTAMPTZ created_at
+        INTEGER created_by FK
+        TIMESTAMPTZ updated_at
+        INTEGER updated_by FK
+        TIMESTAMPTZ deleted_at
+    }
+    
     %% ========================================
     %% GAME SCHEMA
     %% ========================================
@@ -323,7 +343,9 @@ erDiagram
     
     %% Content relationships
     modules ||--o{ activities : "contains"
+    activities ||--o{ activity_resources : "uses"
     activities ||--o{ student_progress : "tracked_by"
+    activity_resources }o--|| media_files : "references"
     
     %% Game relationships
     badges ||--o{ student_badges : "awarded_as"
@@ -349,7 +371,7 @@ erDiagram
 ### Content Schema
 - **modules**: Learning modules/courses
 - **activities**: Individual learning activities
-- **assets**: Media assets for activities
+- **activity_resources**: Links activities to media files (replaces old assets table)
 
 ### Game Schema
 - **student_progress**: Activity completion tracking

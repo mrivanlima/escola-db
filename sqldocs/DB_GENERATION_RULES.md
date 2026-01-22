@@ -33,6 +33,34 @@ Generate or update SQL files in the `/database` folder following "Smart Idempote
 3. TRIGGERS:
    - Always `DROP TRIGGER IF EXISTS` before creating.
 
+## Soft Delete & Unique Constraints
+
+**Problem**: Standard UNIQUE constraints prevent re-using values (email, UUID) after soft delete.
+
+**Solution**: Use **Partial Unique Indexes** instead of UNIQUE constraints:
+
+```sql
+-- DON'T DO THIS (blocks re-use after soft delete):
+CONSTRAINT uq_users_email UNIQUE (email)
+
+-- DO THIS (allows re-use after soft delete):
+CREATE UNIQUE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
+```
+
+**Apply to all tables with**:
+- UUID columns (user_uuid, student_uuid, etc.)
+- Email addresses
+- Any business unique identifier (nickname per tenant, etc.)
+
+**Pattern**:
+```sql
+-- Instead of constraint in CREATE TABLE
+CREATE TABLE users (...);
+
+-- Create partial index after table
+CREATE UNIQUE INDEX idx_users_uuid_active ON users(user_uuid) WHERE deleted_at IS NULL;
+```
+
 ## Text Normalization for Search (Brazilian Portuguese Support)
 
 **Context**: Brazilian names commonly use accents (José, João, María, etc.). Users expect to search without accents.

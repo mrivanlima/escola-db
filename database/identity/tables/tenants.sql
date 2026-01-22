@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS identity.tenants (
     
     -- 4. Named Constraints (Bottom)
     CONSTRAINT pk_tenants PRIMARY KEY (tenant_id),
-    CONSTRAINT uq_tenants_uuid UNIQUE (tenant_uuid),
     CONSTRAINT ck_tenants_name CHECK (LENGTH(tenant_name) >= 2),
     CONSTRAINT ck_tenants_type CHECK (tenant_type IN ('school', 'individual', 'enterprise'))
 );
@@ -37,6 +36,9 @@ CREATE INDEX IF NOT EXISTS idx_tenants_type ON identity.tenants(tenant_type);
 CREATE INDEX IF NOT EXISTS idx_tenants_name_normalized ON identity.tenants(tenant_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_tenants_active ON identity.tenants(is_active) WHERE is_active = TRUE;
 CREATE INDEX IF NOT EXISTS idx_tenants_deleted_at ON identity.tenants(deleted_at) WHERE deleted_at IS NULL;
+
+-- 5.1. Soft Delete Unique Index (UUID can be reused after soft delete)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tenants_uuid_active ON identity.tenants(tenant_uuid) WHERE deleted_at IS NULL;
 
 -- 6. Trigger for Updated At
 CREATE TRIGGER trg_tenants_updated_at

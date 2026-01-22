@@ -33,9 +33,6 @@ CREATE TABLE IF NOT EXISTS identity.app_users (
     
     -- 5. Named Constraints (Bottom)
     CONSTRAINT pk_app_users PRIMARY KEY (user_id),
-    CONSTRAINT uq_app_users_uuid UNIQUE (user_uuid),
-    CONSTRAINT uq_app_users_auth UNIQUE (auth_user_id),
-    CONSTRAINT uq_app_users_email_tenant UNIQUE (email, tenant_id),
     
     CONSTRAINT fk_app_users_tenant FOREIGN KEY (tenant_id) 
         REFERENCES identity.tenants (tenant_id),
@@ -52,6 +49,11 @@ CREATE INDEX IF NOT EXISTS idx_app_users_role ON identity.app_users(user_role);
 CREATE INDEX IF NOT EXISTS idx_app_users_full_name_normalized ON identity.app_users(full_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_app_users_email_normalized ON identity.app_users(email_normalized);
 CREATE INDEX IF NOT EXISTS idx_app_users_deleted_at ON identity.app_users(deleted_at) WHERE deleted_at IS NULL;
+
+-- 6.1. Soft Delete Unique Indexes (Allow reuse after soft delete)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_app_users_uuid_active ON identity.app_users(user_uuid) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_app_users_auth_active ON identity.app_users(auth_user_id) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_app_users_email_tenant_active ON identity.app_users(email, tenant_id) WHERE deleted_at IS NULL;
 
 -- 7. Trigger for Updated At
 CREATE TRIGGER trg_app_users_updated_at
