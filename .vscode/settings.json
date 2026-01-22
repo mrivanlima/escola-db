@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "*.sql": "sql"
+  },
+  "[sql]": {
+    "editor.defaultFormatter": "ms-ossdata.vscode-pgsql"
+  },
+  "pgsql.defaultDatabase": "escola_db",
+  "mssql.enabled": false
+}
