@@ -17,16 +17,16 @@
 ### 3.1. Schemas & Organization
 - **Logical Separation:** Do NOT use the `public` schema for business tables.
     - `identity`: Users, Tenants, Auth integration.
+    - `assets`: Media Library (Centralized storage metadata).
     - `school`: Students, Guardians, Classes, Teachers.
-    - `content`: Activities, Modules, Assets.
+    - `content`: Activities, Modules, Activity Resources (Linked to Assets).
     - `game`: Progress, Scores, Badges.
     - `audit`: System logs.
 
 ### 3.2. Naming Conventions
 - **Case:** `snake_case` for everything.
-- **Pluralization:** Table names MUST be **Plural**.
-- **Indices:** - Standard: `idx_[table]_[column]`
-    - Unique: `uq_[table]_[column]`
+- **Pluralization:** Table names MUST be **Plural** (e.g., `students`, `activities`).
+- **Text Normalization:** For every searchable text column (Name, Email, Title), create a companion column `[column]_normalized` (lowercase + unaccent) and index it.
 - **Constraints:** Define all constraints at the bottom of the DDL.
     - PK: `pk_[table]`
     - FK: `fk_[table]_[referred_table]`
@@ -53,6 +53,7 @@
     - `updated_by` (int, FK to `identity.app_users`)
     - `deleted_at` (timestamptz, nullable) -> **Soft Delete**
 - **Trigger:** All tables must use `handle_updated_at` trigger.
+- **Unique Indexes:** NEVER use standard `UNIQUE` constraints on soft-deletable columns (like email). Use **Partial Indexes**: `WHERE deleted_at IS NULL`.
 
 ### 3.6. Metadata
 - **Comments:** EVERY table and column must have a SQL `COMMENT` describing its purpose, validation rules, or JSON structure.
@@ -65,7 +66,7 @@
 - **Domain:** Entities, Enums, Exceptions. *No dependencies.*
 - **Application:** DTOs, Services, Validators (FluentValidation).
 - **Infrastructure:** EF Core (Commands), Dapper (Queries).
-- **API:** Controllers (Presentation).
+- **Api:** Controllers (Presentation).
 
 ### 4.2. Coding Rules
 - **DTOs:** Strict separation. Never return Entities.

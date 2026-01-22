@@ -92,18 +92,20 @@ Every table includes:
 
 ### Database Setup
 
-1. **Configure connection** (create `db_config.ps1`):
+1. **Configure connection** (create `database/scripts/db_config.ps1`):
 ```powershell
-$env:PGHOST = "your-host.supabase.com"
-$env:PGPORT = "5432"
-$env:PGUSER = "postgres.yourproject"
-$env:PGDATABASE = "postgres"
-$env:PGPASSWORD = "your-password"
+$DbConfig = @{
+    Server   = "your-host.supabase.com"
+    Port     = "5432"
+    Database = "postgres"
+    Username = "postgres.yourproject"
+    Password = "your-password"
+}
 ```
 
 2. **Run build script**:
 ```powershell
-.\quick_build.ps1
+.\database\scripts\quick_build.ps1
 ```
 
 This will:
@@ -121,7 +123,16 @@ psql -f database/seed_data.sql
 
 ```
 Escola/
+├── src/                        # .NET Solution (future)
 ├── database/
+│   ├── scripts/               # Build and utility scripts
+│   │   ├── build_db.ps1
+│   │   ├── quick_build.ps1
+│   │   ├── rebuild_db.ps1
+│   │   ├── run_query.ps1
+│   │   ├── db_config.ps1
+│   │   ├── generate_db_diagram.py
+│   │   └── README.md
 │   ├── shared/
 │   │   ├── init_schemas.sql
 │   │   └── functions/
@@ -135,23 +146,27 @@ Escola/
 │   ├── apply_normalization.sql
 │   ├── seed_data.sql
 │   └── build_all.sql
-├── sqldocs/
-│   ├── ARCHITECTURE.md
-│   ├── DB_GENERATION_RULES.md
-│   ├── database_diagram.md
-│   ├── database_schema_diagram.pdf
-│   └── database_schema.dot
-├── build_db.ps1
-├── quick_build.ps1
-└── generate_db_diagram.py
+├── docs/
+│   ├── guides/                # Setup and migration guides
+│   │   ├── GITHUB_SETUP.md
+│   │   ├── COMO_ENVIAR_GITHUB.md
+│   │   └── MIGRATION_SUMMARY.md
+│   └── sqldocs/               # Database documentation
+│       ├── database_diagram.md
+│       ├── database_schema_diagram.pdf
+│       ├── database_schema.dot
+│       └── DB_GENERATION_RULES.md
+├── ARCHITECTURE.md
+└── README.md
 ```
 
 ## 📖 Documentation
 
-- **[ARCHITECTURE.md](sqldocs/ARCHITECTURE.md)** - Complete architectural overview
-- **[DB_GENERATION_RULES.md](sqldocs/DB_GENERATION_RULES.md)** - Database coding standards
-- **[database_schema_diagram.pdf](sqldocs/database_schema_diagram.pdf)** - Visual database diagram
-- **[database_diagram.md](sqldocs/database_diagram.md)** - Mermaid ERD diagram
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete architectural overview
+- **[DB_GENERATION_RULES.md](docs/sqldocs/DB_GENERATION_RULES.md)** - Database coding standards
+- **[database_schema_diagram.pdf](docs/sqldocs/database_schema_diagram.pdf)** - Visual database diagram
+- **[database_diagram.md](docs/sqldocs/database_diagram.md)** - Mermaid ERD diagram
+- **[Database Scripts Guide](database/scripts/README.md)** - Build and management scripts documentation
 
 ## 🔍 Key Features
 
@@ -179,14 +194,34 @@ Escola/
 
 ## 🛠️ Build Scripts
 
+All database management scripts are located in [database/scripts/](database/scripts/).
+
 ### `quick_build.ps1`
 Optimized single-connection build:
 - Executes all DDL in order
 - Creates schemas, functions, tables, triggers, indexes, RLS
 - Idempotent (safe to run multiple times)
 
+**Usage:**
+```powershell
+.\database\scripts\quick_build.ps1
+```
+
+### `rebuild_db.ps1`
+Complete database rebuild (⚠️ destroys all data):
+- Drops all schemas
+- Recreates database structure
+- Seeds sample data
+
+**Usage:**
+```powershell
+.\database\scripts\rebuild_db.ps1
+```
+
 ### `build_db.ps1`
 Legacy multi-file build (use `quick_build.ps1` instead)
+
+See [database/scripts/README.md](database/scripts/README.md) for detailed documentation.
 
 ### `apply_normalization.sql`
 Adds normalized columns to all TEXT fields:
@@ -239,4 +274,4 @@ END $$;
 
 ---
 
-**Note**: The `db_config.ps1` file containing database credentials is excluded from version control. Create your own based on your Supabase or PostgreSQL setup.
+**Note**: The `database/scripts/db_config.ps1` file containing database credentials is excluded from version control. Create your own based on your Supabase or PostgreSQL setup.

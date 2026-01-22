@@ -48,23 +48,23 @@ Write-Host ""
 
 # Execution order
 $ExecutionOrder = @(
-    "database/shared/init_schemas.sql",
-    "database/shared/functions/handle_updated_at.sql",
-    "database/identity/tables/tenants.sql",
-    "database/identity/tables/app_users.sql",
-    "database/assets/tables/media_files.sql",
-    "database/school/tables/students.sql",
-    "database/school/tables/guardians.sql",
-    "database/school/tables/student_guardians.sql",
-    "database/school/tables/classes.sql",
-    "database/school/tables/teachers.sql",
-    "database/school/tables/class_students.sql",
-    "database/content/tables/modules.sql",
-    "database/content/tables/activities.sql",
-    "database/content/tables/assets.sql",
-    "database/game/tables/student_progress.sql",
-    "database/game/tables/badges.sql",
-    "database/game/tables/student_badges.sql"
+    "../shared/init_schemas.sql",
+    "../shared/functions/handle_updated_at.sql",
+    "../identity/tables/tenants.sql",
+    "../identity/tables/app_users.sql",
+    "../assets/tables/media_files.sql",
+    "../school/tables/students.sql",
+    "../school/tables/guardians.sql",
+    "../school/tables/student_guardians.sql",
+    "../school/tables/classes.sql",
+    "../school/tables/teachers.sql",
+    "../school/tables/class_students.sql",
+    "../content/tables/modules.sql",
+    "../content/tables/activities.sql",
+    "../content/tables/assets.sql",
+    "../game/tables/student_progress.sql",
+    "../game/tables/badges.sql",
+    "../game/tables/student_badges.sql"
 )
 
 Write-Host "Starting database build process..." -ForegroundColor Green

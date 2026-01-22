@@ -14,7 +14,7 @@ import os
 def create_database_diagram_pdf():
     """Generate PDF with database schema tables and relationships"""
     
-    output_path = os.path.join('sqldocs', 'database_schema_diagram.pdf')
+    output_path = os.path.join('..', '..', 'docs', 'sqldocs', 'database_schema_diagram.pdf')
     
     # Create PDF document
     doc = SimpleDocTemplate(

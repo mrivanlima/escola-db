@@ -45,7 +45,7 @@ try {
         -p $Port `
         -U $Username `
         -d $Database `
-        -f "$PSScriptRoot\database\build_all.sql" `
+        -f "$PSScriptRoot\..\build_all.sql" `
         -v ON_ERROR_STOP=1
     
     if ($LASTEXITCODE -eq 0) {

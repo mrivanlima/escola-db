@@ -74,7 +74,7 @@ DROP SCHEMA IF EXISTS identity CASCADE;"
         -p $Port `
         -U $Username `
         -d $Database `
-        -f "$PSScriptRoot\database\build_all.sql" `
+        -f "$PSScriptRoot\..\build_all.sql" `
         -v ON_ERROR_STOP=1
     
     if ($LASTEXITCODE -ne 0) {
@@ -90,7 +90,7 @@ DROP SCHEMA IF EXISTS identity CASCADE;"
         -p $Port `
         -U $Username `
         -d $Database `
-        -f "$PSScriptRoot\database\seed_data.sql" `
+        -f "$PSScriptRoot\..\seed_data.sql" `
         -v ON_ERROR_STOP=1
     
     if ($LASTEXITCODE -ne 0) {
