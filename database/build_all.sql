@@ -25,7 +25,7 @@
 -- Content Schema
 \i database/content/tables/modules.sql
 \i database/content/tables/activities.sql
-\i database/content/tables/assets.sql
+\i database/content/tables/activity_resources.sql
 
 -- Game Schema
 \i database/game/tables/student_progress.sql

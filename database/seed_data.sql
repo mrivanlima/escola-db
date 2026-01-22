@@ -36,26 +36,26 @@ INSERT INTO identity.app_users (tenant_id, auth_user_id, full_name, email, user_
 (5, gen_random_uuid(), 'João Santos', 'joao.santos@gmail.com', 'parent', true, '{"language": "pt-BR", "notifications": true}', NOW());
 
 -- =====================================================
--- 3. SCHOOL.STUDENTS (15 students)
+-- 3. SCHOOL.STUDENTS (13 students)
 -- =====================================================
-INSERT INTO school.students (tenant_id, nickname, full_name, birth_date, avatar_config, is_active, created_by, created_at) VALUES
+INSERT INTO school.students (tenant_id, nickname, first_name, middle_name, last_name, birth_date, avatar_config, is_active, created_by, created_at) VALUES
 -- Tenant 1 students
-(1, 'Pedrinho', 'Pedro Oliveira Silva', '2020-05-15', '{"hair": 1, "color": "#FF5733", "accessories": ["cap"]}', true, 4, NOW()),
-(1, 'Aninha', 'Ana Clara Oliveira Silva', '2021-08-22', '{"hair": 2, "color": "#FFC300", "accessories": ["bow"]}', true, 4, NOW()),
-(1, 'Luquinhas', 'Lucas Mendes', '2020-11-10', '{"hair": 3, "color": "#3498DB", "accessories": []}', true, 5, NOW()),
-(1, 'Julinha', 'Julia Costa', '2019-03-18', '{"hair": 4, "color": "#E74C3C", "accessories": ["glasses"]}', true, 5, NOW()),
-(1, 'Dudu', 'Eduardo Santos', '2021-01-25', '{"hair": 1, "color": "#2ECC71", "accessories": ["hat"]}', true, 4, NOW()),
+(1, 'Pedrinho', 'Pedro', 'Oliveira', 'Silva', '2020-05-15', '{"hair": 1, "color": "#FF5733", "accessories": ["cap"]}', true, 4, NOW()),
+(1, 'Aninha', 'Ana', 'Clara Oliveira', 'Silva', '2021-08-22', '{"hair": 2, "color": "#FFC300", "accessories": ["bow"]}', true, 4, NOW()),
+(1, 'Luquinhas', 'Lucas', NULL, 'Mendes', '2020-11-10', '{"hair": 3, "color": "#3498DB", "accessories": []}', true, 5, NOW()),
+(1, 'Julinha', 'Julia', NULL, 'Costa', '2019-03-18', '{"hair": 4, "color": "#E74C3C", "accessories": ["glasses"]}', true, 5, NOW()),
+(1, 'Dudu', 'Eduardo', NULL, 'Santos', '2021-01-25', '{"hair": 1, "color": "#2ECC71", "accessories": ["hat"]}', true, 4, NOW()),
 -- Tenant 2 students
-(2, 'Sofi', 'Sofia Lima', '2020-07-08', '{"hair": 5, "color": "#9B59B6", "accessories": ["crown"]}', true, 8, NOW()),
-(2, 'Gui', 'Guilherme Pereira', '2019-12-30', '{"hair": 2, "color": "#1ABC9C", "accessories": []}', true, 8, NOW()),
-(2, 'Laurinha', 'Laura Martins', '2021-04-12', '{"hair": 3, "color": "#F39C12", "accessories": ["ribbon"]}', true, 8, NOW()),
+(2, 'Sofi', 'Sofia', NULL, 'Lima', '2020-07-08', '{"hair": 5, "color": "#9B59B6", "accessories": ["crown"]}', true, 8, NOW()),
+(2, 'Gui', 'Guilherme', NULL, 'Pereira', '2019-12-30', '{"hair": 2, "color": "#1ABC9C", "accessories": []}', true, 8, NOW()),
+(2, 'Laurinha', 'Laura', NULL, 'Martins', '2021-04-12', '{"hair": 3, "color": "#F39C12", "accessories": ["ribbon"]}', true, 8, NOW()),
 -- Tenant 3 students
-(3, 'Mateus', 'Mateus Rodrigues', '2020-09-05', '{"hair": 1, "color": "#34495E", "accessories": ["cap"]}', true, 9, NOW()),
-(3, 'Isa', 'Isabella Fernandes', '2019-06-20', '{"hair": 4, "color": "#E67E22", "accessories": []}', true, 9, NOW()),
+(3, 'Mateus', 'Mateus', NULL, 'Rodrigues', '2020-09-05', '{"hair": 1, "color": "#34495E", "accessories": ["cap"]}', true, 9, NOW()),
+(3, 'Isa', 'Isabella', NULL, 'Fernandes', '2019-06-20', '{"hair": 4, "color": "#E67E22", "accessories": []}', true, 9, NOW()),
 -- Individual tenants
-(4, 'Clarinha', 'Clara Silva', '2020-02-14', '{"hair": 5, "color": "#8E44AD", "accessories": ["bow"]}', true, 11, NOW()),
-(4, 'Pedroca', 'Pedro Silva Jr', '2021-10-03', '{"hair": 2, "color": "#16A085", "accessories": []}', true, 11, NOW()),
-(5, 'Theo', 'Theo Santos', '2019-08-17', '{"hair": 3, "color": "#C0392B", "accessories": ["glasses"]}', true, 12, NOW());
+(4, 'Clarinha', 'Clara', NULL, 'Silva', '2020-02-14', '{"hair": 5, "color": "#8E44AD", "accessories": ["bow"]}', true, 11, NOW()),
+(4, 'Pedroca', 'Pedro', 'Silva', 'Jr', '2021-10-03', '{"hair": 2, "color": "#16A085", "accessories": []}', true, 11, NOW()),
+(5, 'Theo', 'Theo', NULL, 'Santos', '2019-08-17', '{"hair": 3, "color": "#C0392B", "accessories": ["glasses"]}', true, 12, NOW());
 
 -- =====================================================
 -- 4. SCHOOL.GUARDIANS (8 guardians)
@@ -165,19 +165,43 @@ INSERT INTO content.activities (module_id, activity_name, description, activity_
 (8, 'Monte o Boneco', 'Coloque as partes do corpo no lugar certo', 'puzzle', 1, 10, 20, '{"parts": ["head", "arms", "legs", "torso"]}', 'https://example.com/activities/body-puzzle.jpg', true, 1, NOW());
 
 -- =====================================================
--- 11. CONTENT.ASSETS (10 assets)
+-- 11. ASSETS.MEDIA_FILES (10 files)
 -- =====================================================
-INSERT INTO content.assets (asset_name, asset_type, file_url, file_size_bytes, mime_type, duration_seconds, dimensions, alt_text, asset_metadata, is_published, created_by, created_at) VALUES
-('Patinho Animado', 'image', 'https://cdn.example.com/assets/duck-animated.png', 245760, 'image/png', NULL, '{"width": 512, "height": 512}', 'Ilustração de um patinho amarelo', '{"tags": ["animal", "pato"], "language": "pt-BR"}', true, 1, NOW()),
-('Arco-íris Colorido', 'image', 'https://cdn.example.com/assets/rainbow.jpg', 389120, 'image/jpeg', NULL, '{"width": 1920, "height": 1080}', 'Imagem de um arco-íris', '{"tags": ["cores", "natureza"], "language": "pt-BR"}', true, 1, NOW()),
-('Som da Vaca', 'audio', 'https://cdn.example.com/assets/cow-sound.mp3', 81920, 'audio/mpeg', 3, NULL, 'Som de vaca mugindo', '{"tags": ["animal", "som"], "language": "pt-BR"}', true, 1, NOW()),
-('Vídeo do Alfabeto', 'video', 'https://cdn.example.com/assets/alphabet-song.mp4', 15728640, 'video/mp4', 120, '{"width": 1280, "height": 720}', 'Música do alfabeto', '{"tags": ["alfabeto", "música"], "language": "pt-BR"}', true, 1, NOW()),
-('Formas Geométricas', 'image', 'https://cdn.example.com/assets/shapes.svg', 16384, 'image/svg+xml', NULL, '{"width": 800, "height": 600}', 'Círculo, quadrado e triângulo', '{"tags": ["formas", "geometria"], "language": "pt-BR"}', true, 1, NOW()),
-('Números 1 a 10', 'image', 'https://cdn.example.com/assets/numbers-poster.png', 524288, 'image/png', NULL, '{"width": 2048, "height": 1536}', 'Pôster com números de 1 a 10', '{"tags": ["números", "matemática"], "language": "pt-BR"}', true, 1, NOW()),
-('Música do Tambor', 'audio', 'https://cdn.example.com/assets/drum-beat.mp3', 163840, 'audio/mpeg', 30, NULL, 'Ritmo de tambor', '{"tags": ["música", "ritmo"], "language": "pt-BR"}', true, 1, NOW()),
-('Corpo Humano Infantil', 'image', 'https://cdn.example.com/assets/body-parts.jpg', 327680, 'image/jpeg', NULL, '{"width": 1024, "height": 1024}', 'Desenho do corpo humano para crianças', '{"tags": ["corpo", "anatomia"], "language": "pt-BR"}', true, 1, NOW()),
-('Frutas Sortidas', 'image', 'https://cdn.example.com/assets/fruits.png', 409600, 'image/png', NULL, '{"width": 1200, "height": 800}', 'Maçãs, laranjas e bananas', '{"tags": ["frutas", "comida"], "language": "pt-BR"}', true, 1, NOW()),
-('Som de Piano', 'audio', 'https://cdn.example.com/assets/piano-notes.mp3', 122880, 'audio/mpeg', 15, NULL, 'Notas musicais no piano', '{"tags": ["música", "piano"], "language": "pt-BR"}', true, 1, NOW());
+INSERT INTO assets.media_files (tenant_id, storage_path, original_name, mime_type, size_bytes, alt_text, metadata, created_by, created_at) VALUES
+(1, 'tenants/1/media/duck-animated.png', 'Patinho Animado', 'image/png', 245760, 'Ilustração de um patinho amarelo', '{"tags": ["animal", "pato"], "language": "pt-BR", "url": "https://cdn.example.com/assets/duck-animated.png", "dimensions": {"width": 512, "height": 512}}', 1, NOW()),
+(1, 'tenants/1/media/rainbow.jpg', 'Arco-íris Colorido', 'image/jpeg', 389120, 'Imagem de um arco-íris', '{"tags": ["cores", "natureza"], "language": "pt-BR", "url": "https://cdn.example.com/assets/rainbow.jpg", "dimensions": {"width": 1920, "height": 1080}}', 1, NOW()),
+(1, 'tenants/1/media/cow-sound.mp3', 'Som da Vaca', 'audio/mpeg', 81920, 'Som de vaca mugindo', '{"tags": ["animal", "som"], "language": "pt-BR", "url": "https://cdn.example.com/assets/cow-sound.mp3", "duration": 3}', 1, NOW()),
+(1, 'tenants/1/media/alphabet-song.mp4', 'Vídeo do Alfabeto', 'video/mp4', 15728640, 'Música do alfabeto', '{"tags": ["alfabeto", "música"], "language": "pt-BR", "url": "https://cdn.example.com/assets/alphabet-song.mp4", "dimensions": {"width": 1280, "height": 720}, "duration": 120}', 1, NOW()),
+(1, 'tenants/1/media/shapes.svg', 'Formas Geométricas', 'image/svg+xml', 16384, 'Círculo, quadrado e triângulo', '{"tags": ["formas", "geometria"], "language": "pt-BR", "url": "https://cdn.example.com/assets/shapes.svg", "dimensions": {"width": 800, "height": 600}}', 1, NOW()),
+(1, 'tenants/1/media/numbers-poster.png', 'Números 1 a 10', 'image/png', 524288, 'Pôster com números de 1 a 10', '{"tags": ["números", "matemática"], "language": "pt-BR", "url": "https://cdn.example.com/assets/numbers-poster.png", "dimensions": {"width": 2048, "height": 1536}}', 1, NOW()),
+(1, 'tenants/1/media/drum-beat.mp3', 'Música do Tambor', 'audio/mpeg', 163840, 'Ritmo de tambor', '{"tags": ["música", "ritmo"], "language": "pt-BR", "url": "https://cdn.example.com/assets/drum-beat.mp3", "duration": 30}', 1, NOW()),
+(1, 'tenants/1/media/body-parts.jpg', 'Corpo Humano Infantil', 'image/jpeg', 327680, 'Desenho do corpo humano para crianças', '{"tags": ["corpo", "anatomia"], "language": "pt-BR", "url": "https://cdn.example.com/assets/body-parts.jpg", "dimensions": {"width": 1024, "height": 1024}}', 1, NOW()),
+(1, 'tenants/1/media/fruits.png', 'Frutas Sortidas', 'image/png', 409600, 'Maçãs, laranjas e bananas', '{"tags": ["frutas", "comida"], "language": "pt-BR", "url": "https://cdn.example.com/assets/fruits.png", "dimensions": {"width": 1200, "height": 800}}', 1, NOW()),
+(1, 'tenants/1/media/piano-notes.mp3', 'Som de Piano', 'audio/mpeg', 122880, 'Notas musicais no piano', '{"tags": ["música", "piano"], "language": "pt-BR", "url": "https://cdn.example.com/assets/piano-notes.mp3", "duration": 15}', 1, NOW());
+
+-- =====================================================
+-- 12. CONTENT.ACTIVITY_RESOURCES (10 resources)
+-- =====================================================
+INSERT INTO content.activity_resources (activity_id, resource_name, resource_type, media_file_id, display_order, is_required, usage_context, is_published, created_by, created_at) VALUES
+-- Activity 1: Conte os Patinhos
+(1, 'Imagem do Patinho', 'image', (SELECT file_id FROM assets.media_files WHERE original_name = 'Patinho Animado'), 1, true, 'instruction', true, 1, NOW()),
+-- Activity 3: Pinte o Arco-íris
+(3, 'Imagem do Arco-íris', 'image', (SELECT file_id FROM assets.media_files WHERE original_name = 'Arco-íris Colorido'), 1, true, 'instruction', true, 1, NOW()),
+-- Activity 4: Encontre as Formas
+(4, 'Formas Geométricas', 'image', (SELECT file_id FROM assets.media_files WHERE original_name = 'Formas Geométricas'), 1, true, 'instruction', true, 1, NOW()),
+-- Activity 7: Sons da Fazenda
+(7, 'Som da Vaca', 'audio', (SELECT file_id FROM assets.media_files WHERE original_name = 'Som da Vaca'), 1, true, 'question', true, 1, NOW()),
+-- Activity 9: Somando Frutas
+(9, 'Imagem de Frutas', 'image', (SELECT file_id FROM assets.media_files WHERE original_name = 'Frutas Sortidas'), 1, true, 'instruction', true, 1, NOW()),
+-- Activity 11: Toque o Tambor
+(11, 'Som do Tambor', 'audio', (SELECT file_id FROM assets.media_files WHERE original_name = 'Música do Tambor'), 1, true, 'instruction', true, 1, NOW()),
+(11, 'Som do Piano', 'audio', (SELECT file_id FROM assets.media_files WHERE original_name = 'Som de Piano'), 2, false, 'feedback', true, 1, NOW()),
+-- Activity 12: Monte o Boneco
+(12, 'Corpo Humano', 'image', (SELECT file_id FROM assets.media_files WHERE original_name = 'Corpo Humano Infantil'), 1, true, 'instruction', true, 1, NOW()),
+-- Activity 2: Quiz dos Números (additional)
+(2, 'Pôster dos Números', 'image', (SELECT file_id FROM assets.media_files WHERE original_name = 'Números 1 a 10'), 1, false, 'instruction', true, 1, NOW()),
+-- Activity 5: Letra A de Avião (additional)
+(5, 'Vídeo do Alfabeto', 'video', (SELECT file_id FROM assets.media_files WHERE original_name = 'Vídeo do Alfabeto'), 1, false, 'instruction', true, 1, NOW());
 
 -- =====================================================
 -- 12. GAME.STUDENT_PROGRESS (15 progress records)

@@ -27,7 +27,7 @@ digraph database_schema {
         style=filled;
         color=lightgrey;
         
-        media_files [label="{media_files|file_id (PK)\ltenant_id (FK)\lstorage_path\loriginal_name\loriginal_name_normalized\lmime_type\lsize_bytes\lalt_text\lalt_text_normalized\lmetadata (JSONB)\l...audit fields\l}", fillcolor="#FFF4E6"];
+        media_files [label="{media_files|file_id (PK UUID)\ltenant_id (FK)\lstorage_path\loriginal_name\loriginal_name_normalized\lmime_type\lsize_bytes\lalt_text\lalt_text_normalized\lmetadata (JSONB)\l...audit fields\l}", fillcolor="#FFF4E6"];
     }
     
     // ========================================
@@ -43,13 +43,13 @@ digraph database_schema {
         
         guardians [label="{guardians|guardian_id (PK)\lguardian_uuid (UK)\ltenant_id (FK)\luser_id (FK)\lphone_number\lrelationship\lis_primary\l...audit fields\l}", fillcolor="#E8F5E9"];
         
-        student_guardians [label="{student_guardians|student_guardian_id (PK)\lstudent_id (FK)\lguardian_id (FK)\ltenant_id (FK)\lrelationship_notes + normalized\lis_authorized_pickup\l...audit fields\l}", fillcolor="#E8F5E9"];
+        student_guardians [label="{student_guardians|sg_id (PK)\lsg_uuid (UK)\ltenant_id (FK)\lstudent_id (FK)\lguardian_id (FK)\lrelationship_notes + normalized\lis_authorized_pickup\l...audit fields\l}", fillcolor="#E8F5E9"];
         
         classes [label="{classes|class_id (PK)\lclass_uuid (UK)\ltenant_id (FK)\lclass_name + normalized\lgrade_level + normalized\lschool_year + normalized\lmax_students\lclass_config (JSONB)\lis_active\l...audit fields\l}", fillcolor="#E8F5E9"];
         
         teachers [label="{teachers|teacher_id (PK)\lteacher_uuid (UK)\ltenant_id (FK)\luser_id (FK)\lspecialization + normalized\lhire_date\lteacher_config (JSONB)\lis_active\l...audit fields\l}", fillcolor="#E8F5E9"];
         
-        class_students [label="{class_students|class_student_id (PK)\lclass_id (FK)\lstudent_id (FK)\ltenant_id (FK)\lenrollment_date\lstatus\l...audit fields\l}", fillcolor="#E8F5E9"];
+        class_students [label="{class_students|cs_id (PK)\lcs_uuid (UK)\ltenant_id (FK)\lclass_id (FK)\lstudent_id (FK)\lenrollment_date\lstatus\l...audit fields\l}", fillcolor="#E8F5E9"];
     }
     
     // ========================================
@@ -61,11 +61,11 @@ digraph database_schema {
         style=filled;
         color=lightgrey;
         
-        modules [label="{modules|module_id (PK)\lmodule_uuid (UK)\lmodule_name + normalized\ldescription + normalized\lmodule_type\ldifficulty_level\lrecommended_age_min/max\ldisplay_order\lthumbnail_url\lmodule_config (JSONB)\lis_published\l...audit fields\l}", fillcolor="#F3E5F5"];
+        modules [label="{modules|module_id (PK)\lmodule_uuid (UK)\lmodule_name + normalized\ldescription + normalized\lmodule_type\ldifficulty_level\lrecommended_age_min\lrecommended_age_max\ldisplay_order\lmodule_config (JSONB)\lis_published\l...audit fields\l}", fillcolor="#FCE4EC"];
         
-        activities [label="{activities|activity_id (PK)\lactivity_uuid (UK)\lmodule_id (FK)\lactivity_name + normalized\ldescription + normalized\lactivity_type\ldisplay_order\lestimated_duration\lpoints_reward\lactivity_data (JSONB)\lthumbnail_url\lis_published\l...audit fields\l}", fillcolor="#F3E5F5"];
+        activities [label="{activities|activity_id (PK)\lactivity_uuid (UK)\lmodule_id (FK)\lactivity_name + normalized\ldescription + normalized\lactivity_type\ldisplay_order\lestimated_duration\lpoints_reward\lactivity_data (JSONB)\lis_published\l...audit fields\l}", fillcolor="#FCE4EC"];
         
-        assets [label="{assets|asset_id (PK)\lasset_uuid (UK)\lasset_name + normalized\lasset_type\lfile_url\lfile_size_bytes\lmime_type\lduration_seconds\ldimensions (JSONB)\lalt_text + normalized\lasset_metadata (JSONB)\lis_published\l...audit fields\l}", fillcolor="#F3E5F5"];
+        activity_resources [label="{activity_resources|resource_id (PK)\lresource_uuid (UK)\lactivity_id (FK)\lresource_name + normalized\lresource_type\lmedia_file_id (FK UUID)\ldisplay_order\lis_required\lusage_context\lresource_config (JSONB)\lis_published\l...audit fields\l}", fillcolor="#FCE4EC"];
     }
     
     // ========================================
@@ -77,11 +77,11 @@ digraph database_schema {
         style=filled;
         color=lightgrey;
         
-        student_progress [label="{student_progress|progress_id (PK)\lprogress_uuid (UK)\lstudent_id (FK)\lactivity_id (FK)\ltenant_id (FK)\lstatus\lscore\lattempts\ltime_spent_seconds\lprogress_data (JSONB)\lcompleted_at\l...audit fields\l}", fillcolor="#FFEBEE"];
+        student_progress [label="{student_progress|progress_id (PK)\lprogress_uuid (UK)\ltenant_id (FK)\lstudent_id (FK)\lactivity_id (FK)\lstatus\lscore\ltime_spent_seconds\lattempts_count\lcompletion_date\lprogress_data (JSONB)\l...audit fields\l}", fillcolor="#F3E5F5"];
         
-        badges [label="{badges|badge_id (PK)\lbadge_uuid (UK)\lbadge_name + normalized\ldescription + normalized\lbadge_type\licon_url\lrarity\lpoints_value\lunlock_criteria (JSONB)\ldisplay_order\lis_active\l...audit fields\l}", fillcolor="#FFEBEE"];
+        badges [label="{badges|badge_id (PK)\lbadge_uuid (UK)\lbadge_name + normalized\ldescription + normalized\lbadge_type\lrarity\lpoints_value\lunlock_criteria (JSONB)\ldisplay_order\lis_active\l...audit fields\l}", fillcolor="#F3E5F5"];
         
-        student_badges [label="{student_badges|student_badge_id (PK)\lstudent_id (FK)\lbadge_id (FK)\ltenant_id (FK)\learned_at\learn_metadata (JSONB)\l...audit fields\l}", fillcolor="#FFEBEE"];
+        student_badges [label="{student_badges|sb_id (PK)\lsb_uuid (UK)\ltenant_id (FK)\lstudent_id (FK)\lbadge_id (FK)\learned_at\lprogress_id (FK)\l...audit fields\l}", fillcolor="#F3E5F5"];
     }
     
     // ========================================
@@ -89,39 +89,36 @@ digraph database_schema {
     // ========================================
     
     // Identity relationships
-    tenants -> app_users [label="has"];
-    tenants -> media_files [label="owns"];
-    tenants -> students [label="has"];
-    tenants -> guardians [label="has"];
-    tenants -> classes [label="has"];
-    tenants -> teachers [label="has"];
-    tenants -> student_progress [label="has"];
-    tenants -> student_guardians [label="has"];
-    tenants -> class_students [label="has"];
-    tenants -> student_badges [label="has"];
+    app_users -> tenants [label="tenant_id"];
+    
+    // Assets relationships
+    media_files -> tenants [label="tenant_id"];
     
     // School relationships
-    app_users -> guardians [label="is (1:1)"];
-    app_users -> teachers [label="is (1:1)"];
-    
-    students -> student_guardians [label="has"];
-    guardians -> student_guardians [label="has"];
-    
-    students -> class_students [label="enrolled"];
-    classes -> class_students [label="contains"];
-    
-    students -> student_progress [label="tracks"];
-    students -> student_badges [label="earned"];
+    students -> tenants [label="tenant_id"];
+    guardians -> tenants [label="tenant_id"];
+    guardians -> app_users [label="user_id"];
+    student_guardians -> tenants [label="tenant_id"];
+    student_guardians -> students [label="student_id"];
+    student_guardians -> guardians [label="guardian_id"];
+    classes -> tenants [label="tenant_id"];
+    teachers -> tenants [label="tenant_id"];
+    teachers -> app_users [label="user_id"];
+    class_students -> tenants [label="tenant_id"];
+    class_students -> classes [label="class_id"];
+    class_students -> students [label="student_id"];
     
     // Content relationships
-    modules -> activities [label="contains"];
-    activities -> student_progress [label="tracked"];
+    activities -> modules [label="module_id"];
+    activity_resources -> activities [label="activity_id"];
+    activity_resources -> media_files [label="media_file_id", style=dashed, color=blue];
     
     // Game relationships
-    badges -> student_badges [label="awarded"];
-    
-    // Legend
-    label = "\nEscola Platform - Database Schema\n17 Tables | 6 Schemas | 22 Normalized Columns\nHybrid IDs: Internal INT + External UUID\nAll TEXT columns have *_normalized for accent-insensitive search";
-    labelloc = "b";
-    fontsize = 14;
+    student_progress -> tenants [label="tenant_id"];
+    student_progress -> students [label="student_id"];
+    student_progress -> activities [label="activity_id"];
+    student_badges -> tenants [label="tenant_id"];
+    student_badges -> students [label="student_id"];
+    student_badges -> badges [label="badge_id"];
+    student_badges -> student_progress [label="progress_id", style=dashed];
 }

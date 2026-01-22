@@ -198,13 +198,13 @@ def create_database_diagram_pdf():
                     ]
                 },
                 {
-                    'name': 'assets',
+                    'name': 'activity_resources',
                     'columns': [
-                        'asset_id (PK)', 'asset_uuid (UK)',
-                        'asset_name + normalized', 'asset_type', 'file_url',
-                        'file_size_bytes', 'mime_type', 'duration_seconds',
-                        'dimensions (JSONB)', 'alt_text + normalized',
-                        'asset_metadata (JSONB)', 'is_published',
+                        'resource_id (PK)', 'resource_uuid (UK)',
+                        'activity_id (FK)', 'resource_name + normalized',
+                        'resource_type', 'media_file_id (FK UUID)',
+                        'display_order', 'is_required', 'usage_context',
+                        'resource_config (JSONB)', 'is_published',
                         '+ audit fields'
                     ]
                 }
@@ -292,6 +292,8 @@ def create_database_diagram_pdf():
         ['students', 'class_students', '1:N', 'Student enrollment'],
         ['classes', 'class_students', '1:N', 'Class roster'],
         ['modules', 'activities', '1:N', 'Module contains activities'],
+        ['activities', 'activity_resources', '1:N', 'Activity uses resources'],
+        ['media_files', 'activity_resources', '1:N', 'Media library reference'],
         ['students', 'student_progress', '1:N', 'Progress tracking'],
         ['activities', 'student_progress', '1:N', 'Activity completion'],
         ['students', 'student_badges', '1:N', 'Earned badges'],

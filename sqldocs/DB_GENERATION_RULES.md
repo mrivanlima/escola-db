@@ -109,6 +109,42 @@ CREATE UNIQUE INDEX idx_users_uuid_active ON users(user_uuid) WHERE deleted_at I
 
 **Apply this pattern to**: Names, addresses, descriptions, or any TEXT field requiring accent-insensitive search.
 
+## Documentation Synchronization Rule
+
+**CRITICAL**: Whenever you make **ANY DDL change** to the database (CREATE, ALTER, DROP, RENAME), you **MUST** update all three diagram files:
+
+### Required Updates After DDL Changes:
+
+1. **Update Mermaid Diagram**:
+   - File: `sqldocs/database_diagram.md`
+   - Action: Manually update the ERD table definitions and relationships
+   - Includes: Column changes, new tables, renamed tables, relationship changes
+
+2. **Update DOT Graph**:
+   - File: `sqldocs/database_schema.dot`
+   - Action: Update GraphViz node definitions and edges
+   - Includes: Schema changes, table names, key relationships
+
+3. **Regenerate PDF**:
+   - Script: `generate_db_diagram.py`
+   - Action: Update table definitions in Python script if needed, then run:
+     ```powershell
+     C:/Development/Escola/.venv/Scripts/python.exe generate_db_diagram.py
+     ```
+   - Output: `sqldocs/database_schema_diagram.pdf`
+
+### Workflow Checklist:
+- [ ] Execute DDL changes on database
+- [ ] Update corresponding `.sql` file in `database/` folder
+- [ ] Update `sqldocs/database_diagram.md` (Mermaid ERD)
+- [ ] Update `sqldocs/database_schema.dot` (GraphViz)
+- [ ] Update `generate_db_diagram.py` if table structure changed
+- [ ] Run `python generate_db_diagram.py` to regenerate PDF
+- [ ] Verify all 3 files are synchronized
+- [ ] Commit all changes together (SQL + documentation)
+
+**Why**: Keeping documentation in sync prevents confusion, ensures accurate onboarding, and maintains a single source of truth for the database schema.
+
 ## Output
 - Always provide the necessary `mkdir` commands to create the folder structure if missing.
 - After generating files, remind the user to run the `./build_db.ps1` script.

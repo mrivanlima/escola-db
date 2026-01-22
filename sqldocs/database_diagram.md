@@ -219,28 +219,6 @@ erDiagram
         TIMESTAMPTZ deleted_at
     }
     
-    assets {
-        INTEGER asset_id PK
-        UUID asset_uuid UK
-        TEXT asset_name
-        TEXT asset_name_normalized
-        TEXT asset_type
-        TEXT file_url
-        BIGINT file_size_bytes
-        TEXT mime_type
-        INTEGER duration_seconds
-        JSONB dimensions
-        TEXT alt_text
-        TEXT alt_text_normalized
-        JSONB asset_metadata
-        BOOLEAN is_published
-        TIMESTAMPTZ created_at
-        INTEGER created_by FK
-        TIMESTAMPTZ updated_at
-        INTEGER updated_by
-        TIMESTAMPTZ deleted_at
-    }
-    
     activity_resources {
         INTEGER resource_id PK
         UUID resource_uuid UK
