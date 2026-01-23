@@ -64,30 +64,54 @@ public class StudentGuardianConfiguration : IEntityTypeConfiguration<StudentGuar
             .WithMany(s => s.StudentGuardians)
             .HasForeignKey(sg => sg.StudentId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_student_guardians_student_id");
+            .HasConstraintName("fk_student_guardians_student");
 
         builder.HasOne(sg => sg.Guardian)
             .WithMany(g => g.StudentGuardians)
             .HasForeignKey(sg => sg.GuardianId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_student_guardians_guardian_id");
+            .HasConstraintName("fk_student_guardians_guardian");
 
         builder.HasOne(sg => sg.Tenant)
             .WithMany()
             .HasForeignKey(sg => sg.TenantId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_student_guardians_tenant_id");
+            .HasConstraintName("fk_student_guardians_tenant");
+
+        builder.HasOne(sg => sg.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(sg => sg.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_student_guardians_created")
+            .IsRequired(false);
+
+        builder.HasOne(sg => sg.UpdatedByUser)
+            .WithMany()
+            .HasForeignKey(sg => sg.UpdatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_student_guardians_updated")
+            .IsRequired(false);
 
         // Indexes
         builder.HasIndex(sg => new { sg.StudentId, sg.GuardianId })
             .IsUnique()
-            .HasDatabaseName("uq_student_guardians_student_id_guardian_id");
+            .HasDatabaseName("uq_student_guardians_pair");
 
         builder.HasIndex(sg => sg.TenantId)
-            .HasDatabaseName("idx_student_guardians_tenant_id");
+            .HasDatabaseName("idx_student_guardians_tenant");
+
+        builder.HasIndex(sg => sg.StudentId)
+            .HasDatabaseName("idx_student_guardians_student");
+
+        builder.HasIndex(sg => sg.GuardianId)
+            .HasDatabaseName("idx_student_guardians_guardian");
+
+        builder.HasIndex(sg => sg.RelationshipNotesNormalized)
+            .HasDatabaseName("idx_student_guardians_notes_normalized");
 
         builder.HasIndex(sg => sg.DeletedAt)
-            .HasDatabaseName("idx_student_guardians_deleted_at");
+            .HasDatabaseName("idx_student_guardians_deleted_at")
+            .HasFilter("deleted_at IS NULL");
 
         // Query filter for soft delete
         builder.HasQueryFilter(sg => sg.DeletedAt == null);

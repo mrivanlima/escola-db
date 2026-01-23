@@ -1,45 +1,73 @@
+using Escola.Application.DTOs.School;
+using Escola.Application.Services;
 using Escola.Application.UseCases.Teachers.UpdateTeacher;
+using Escola.Domain.School;
 using Escola.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Infrastructure.UseCases.Teachers;
 
-/// <summary>
-/// Handler for updating a teacher.
-/// </summary>
 public class UpdateTeacherHandler : IUpdateTeacherHandler
 {
     private readonly EscolaDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateTeacherHandler(EscolaDbContext context)
+    public UpdateTeacherHandler(EscolaDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<UpdateTeacherResponse?> Handle(Guid teacherUuid, UpdateTeacherRequest request, CancellationToken cancellationToken)
+    public async Task<UpdateTeacherResponse> HandleAsync(UpdateTeacherRequest request, CancellationToken cancellationToken = default)
     {
-        var teacher = await _context.Teachers
-            .FirstOrDefaultAsync(t => t.TeacherUuid == teacherUuid, cancellationToken);
+        var dto = request.Teacher;
 
-        if (teacher == null)
+        // Get current tenant ID from context
+        var currentTenantId = _currentUserService.GetCurrentTenantId();
+        if (!currentTenantId.HasValue)
+            throw new UnauthorizedAccessException("No tenant context available");
+
+        var teacher = await _context.Set<Teacher>()
+            .Include(t => t.Tenant)
+            .Include(t => t.User)
+            .Include(t => t.Specialization)
+            .FirstOrDefaultAsync(t => t.TeacherUuid == request.TeacherUuid && t.TenantId == currentTenantId.Value && t.DeletedAt == null, cancellationToken);
+
+        if (teacher == null) throw new InvalidOperationException("Teacher not found or access denied.");
+
+        if (dto.SpecializationUuid.HasValue)
         {
-            return null;
+            var specialization = await _context.Set<Specialization>()
+                .FirstOrDefaultAsync(s => s.SpecializationUuid == dto.SpecializationUuid.Value && s.DeletedAt == null, cancellationToken);
+            if (specialization == null) throw new InvalidOperationException("Specialization not found.");
+            teacher.SpecializationId = specialization.SpecializationId;
+            await _context.Entry(teacher).Reference(t => t.Specialization).LoadAsync(cancellationToken);
         }
 
-        teacher.Specialization = request.Specialization;
-        teacher.HireDate = request.HireDate;
-        teacher.TeacherConfig = request.TeacherConfig;
-        teacher.UpdatedAt = DateTimeOffset.UtcNow;
-        teacher.UpdatedBy = 1; // TODO: Replace with actual authenticated user
+        if (dto.HireDate.HasValue) teacher.HireDate = dto.HireDate.Value;
+        if (dto.IsActive.HasValue) teacher.IsActive = dto.IsActive.Value;
 
+        teacher.UpdatedAt = DateTimeOffset.UtcNow;
+        teacher.UpdatedBy = _currentUserService.GetCurrentUserId();
         await _context.SaveChangesAsync(cancellationToken);
 
         return new UpdateTeacherResponse
         {
-            TeacherUuid = teacher.TeacherUuid,
-            Specialization = teacher.Specialization,
-            HireDate = teacher.HireDate,
-            UpdatedAt = teacher.UpdatedAt
+            Teacher = new TeacherDto
+            {
+                TeacherUuid = teacher.TeacherUuid,
+                TenantUuid = teacher.Tenant.TenantUuid,
+                TenantName = teacher.Tenant.TenantName,
+                UserUuid = teacher.User.UserUuid,
+                UserFullName = teacher.User.FullName,
+                UserEmail = teacher.User.Email,
+                SpecializationUuid = teacher.Specialization?.SpecializationUuid,
+                SpecializationName = teacher.Specialization?.SpecializationName,
+                HireDate = teacher.HireDate,
+                IsActive = teacher.IsActive,
+                CreatedAt = teacher.CreatedAt.DateTime,
+                UpdatedAt = teacher.UpdatedAt?.DateTime
+            }
         };
     }
 }

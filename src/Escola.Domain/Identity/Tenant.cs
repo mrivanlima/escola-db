@@ -16,6 +16,11 @@ public class Tenant
     public Guid TenantUuid { get; set; }
 
     /// <summary>
+    /// Foreign key to tenant type (individual, school, enterprise).
+    /// </summary>
+    public short? TenantTypeId { get; set; }
+
+    /// <summary>
     /// Tenant name (e.g., "Green Valley Elementary").
     /// </summary>
     public string TenantName { get; set; } = string.Empty;
@@ -26,12 +31,7 @@ public class Tenant
     public string TenantNameNormalized { get; set; } = string.Empty;
 
     /// <summary>
-    /// Tenant type (e.g., "school", "organization").
-    /// </summary>
-    public string? TenantType { get; set; }
-
-    /// <summary>
-    /// JSON configuration for tenant-specific settings.
+    /// JSON configuration for tenant-specific settings (branding, limits, etc.).
     /// </summary>
     public string? TenantConfig { get; set; }
 
@@ -46,7 +46,7 @@ public class Tenant
     public DateTimeOffset CreatedAt { get; set; }
 
     /// <summary>
-    /// User ID who created this tenant.
+    /// User ID who created this tenant (nullable for system-generated records).
     /// </summary>
     public int? CreatedBy { get; set; }
 
@@ -66,10 +66,9 @@ public class Tenant
     public DateTimeOffset? DeletedAt { get; set; }
 
     // Navigation properties
+    public virtual TenantType? TenantType { get; set; }
+    public virtual AppUser? Creator { get; set; }
+    public virtual AppUser? Updater { get; set; }
     public virtual ICollection<AppUser> AppUsers { get; set; } = new List<AppUser>();
     public virtual ICollection<School.Student> Students { get; set; } = new List<School.Student>();
-    public virtual ICollection<School.Guardian> Guardians { get; set; } = new List<School.Guardian>();
-    public virtual ICollection<School.Class> Classes { get; set; } = new List<School.Class>();
-    public virtual ICollection<School.Teacher> Teachers { get; set; } = new List<School.Teacher>();
-    public virtual ICollection<Assets.MediaFile> MediaFiles { get; set; } = new List<Assets.MediaFile>();
 }

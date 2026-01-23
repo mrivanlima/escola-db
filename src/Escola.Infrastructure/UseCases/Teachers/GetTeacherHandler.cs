@@ -1,39 +1,55 @@
+using Escola.Application.DTOs.School;
+using Escola.Application.Services;
 using Escola.Application.UseCases.Teachers.GetTeacher;
-using Escola.Application.UseCases.Teachers.GetTeachers;
+using Escola.Domain.School;
 using Escola.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Infrastructure.UseCases.Teachers;
 
-/// <summary>
-/// Handler for retrieving a single teacher by UUID.
-/// </summary>
 public class GetTeacherHandler : IGetTeacherHandler
 {
     private readonly EscolaDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetTeacherHandler(EscolaDbContext context)
+    public GetTeacherHandler(EscolaDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<TeacherResponse?> Handle(Guid teacherUuid, CancellationToken cancellationToken)
+    public async Task<GetTeacherResponse> HandleAsync(GetTeacherRequest request, CancellationToken cancellationToken = default)
     {
-        var teacher = await _context.Teachers
-            .AsNoTracking()
-            .Where(t => t.TeacherUuid == teacherUuid)
-            .Select(t => new TeacherResponse
-            {
-                TeacherUuid = t.TeacherUuid,
-                Specialization = t.Specialization,
-                HireDate = t.HireDate,
-                TeacherConfig = t.TeacherConfig,
-                IsActive = t.IsActive,
-                CreatedAt = t.CreatedAt,
-                UpdatedAt = t.UpdatedAt
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+        // Get current tenant ID from context
+        var currentTenantId = _currentUserService.GetCurrentTenantId();
+        if (!currentTenantId.HasValue)
+            throw new UnauthorizedAccessException("No tenant context available");
 
-        return teacher;
+        var teacher = await _context.Set<Teacher>()
+            .Include(t => t.Tenant)
+            .Include(t => t.User)
+            .Include(t => t.Specialization)
+            .FirstOrDefaultAsync(t => t.TeacherUuid == request.TeacherUuid && t.TenantId == currentTenantId.Value && t.DeletedAt == null, cancellationToken);
+
+        if (teacher == null) throw new InvalidOperationException("Teacher not found or access denied.");
+
+        return new GetTeacherResponse
+        {
+            Teacher = new TeacherDto
+            {
+                TeacherUuid = teacher.TeacherUuid,
+                TenantUuid = teacher.Tenant.TenantUuid,
+                TenantName = teacher.Tenant.TenantName,
+                UserUuid = teacher.User.UserUuid,
+                UserFullName = teacher.User.FullName,
+                UserEmail = teacher.User.Email,
+                SpecializationUuid = teacher.Specialization?.SpecializationUuid,
+                SpecializationName = teacher.Specialization?.SpecializationName,
+                HireDate = teacher.HireDate,
+                IsActive = teacher.IsActive,
+                CreatedAt = teacher.CreatedAt.DateTime,
+                UpdatedAt = teacher.UpdatedAt?.DateTime
+            }
+        };
     }
 }

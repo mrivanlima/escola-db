@@ -34,9 +34,9 @@ public class GuardianConfiguration : IEntityTypeConfiguration<Guardian>
             .HasColumnName("phone_number")
             .HasMaxLength(20);
 
-        builder.Property(g => g.Relationship)
-            .HasColumnName("relationship")
-            .HasMaxLength(50);
+        builder.Property(g => g.RelationshipTypeId)
+            .HasColumnName("relationship_type_id")
+            .IsRequired();
 
         builder.Property(g => g.IsPrimary)
             .HasColumnName("is_primary")
@@ -61,30 +61,52 @@ public class GuardianConfiguration : IEntityTypeConfiguration<Guardian>
 
         // Relationships
         builder.HasOne(g => g.Tenant)
-            .WithMany(t => t.Guardians)
+            .WithMany()
             .HasForeignKey(g => g.TenantId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_guardians_tenant_id");
+            .HasConstraintName("fk_guardians_tenant");
 
         builder.HasOne(g => g.User)
-            .WithMany(u => u.Guardians)
+            .WithMany()
             .HasForeignKey(g => g.UserId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_guardians_user_id");
+            .HasConstraintName("fk_guardians_user");
+
+        builder.HasOne(g => g.RelationshipType)
+            .WithMany()
+            .HasForeignKey(g => g.RelationshipTypeId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_guardians_relationship");
+
+        builder.HasOne(g => g.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(g => g.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_guardians_created")
+            .IsRequired(false);
+
+        builder.HasOne(g => g.UpdatedByUser)
+            .WithMany()
+            .HasForeignKey(g => g.UpdatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_guardians_updated")
+            .IsRequired(false);
 
         // Indexes
         builder.HasIndex(g => g.GuardianUuid)
             .IsUnique()
-            .HasDatabaseName("uq_guardians_guardian_uuid");
-
-        builder.HasIndex(g => g.TenantId)
-            .HasDatabaseName("idx_guardians_tenant_id");
+            .HasDatabaseName("uq_guardians_uuid");
 
         builder.HasIndex(g => g.UserId)
-            .HasDatabaseName("idx_guardians_user_id");
+            .IsUnique()
+            .HasDatabaseName("uq_guardians_user");
+
+        builder.HasIndex(g => g.TenantId)
+            .HasDatabaseName("idx_guardians_tenant");
 
         builder.HasIndex(g => g.DeletedAt)
-            .HasDatabaseName("idx_guardians_deleted_at");
+            .HasDatabaseName("idx_guardians_deleted_at")
+            .HasFilter("deleted_at IS NULL");
 
         // Query filter for soft delete
         builder.HasQueryFilter(g => g.DeletedAt == null);

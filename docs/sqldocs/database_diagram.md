@@ -734,7 +734,7 @@ All JSONB columns validated with CHECK constraints:
 
 ### Audit Trail
 All tables include:
-- created_at, created_by (FK to app_users)
+- created_at, created_by (FK to app_users - **nullable for system-generated records**)
 - updated_at, updated_by (FK to app_users)
 - deleted_at (soft delete)
 

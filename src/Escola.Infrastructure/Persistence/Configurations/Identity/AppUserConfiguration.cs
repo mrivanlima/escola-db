@@ -50,10 +50,9 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(u => u.UserRole)
-            .HasColumnName("user_role")
-            .IsRequired()
-            .HasMaxLength(50);
+        builder.Property(u => u.UserRoleId)
+            .HasColumnName("user_role_id")
+            .IsRequired();
 
         builder.Property(u => u.IsActive)
             .HasColumnName("is_active")
@@ -85,7 +84,25 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .WithMany(t => t.AppUsers)
             .HasForeignKey(u => u.TenantId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_app_users_tenant_id");
+            .HasConstraintName("fk_app_users_tenant");
+
+        builder.HasOne(u => u.UserRole)
+            .WithMany()
+            .HasForeignKey(u => u.UserRoleId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_app_users_role");
+
+        builder.HasOne(u => u.Creator)
+            .WithMany()
+            .HasForeignKey(u => u.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_app_users_created");
+
+        builder.HasOne(u => u.Updater)
+            .WithMany()
+            .HasForeignKey(u => u.UpdatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_app_users_updated");
 
         // Indexes
         builder.HasIndex(u => u.UserUuid)

@@ -1,204 +1,110 @@
 using Escola.Api.Common;
+using Escola.Application.DTOs.School;
 using Escola.Application.UseCases.Teachers.CreateTeacher;
-using Escola.Application.UseCases.Teachers.DeleteTeacher;
 using Escola.Application.UseCases.Teachers.GetTeacher;
 using Escola.Application.UseCases.Teachers.GetTeachers;
 using Escola.Application.UseCases.Teachers.UpdateTeacher;
-using FluentValidation;
+using Escola.Application.Validators.School;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Escola.Api.Controllers;
 
-/// <summary>
-/// Teachers management endpoints.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class TeachersController : ControllerBase
 {
-    private readonly IGetTeachersHandler _getTeachersHandler;
-    private readonly IGetTeacherHandler _getTeacherHandler;
-    private readonly ICreateTeacherHandler _createTeacherHandler;
-    private readonly IUpdateTeacherHandler _updateTeacherHandler;
-    private readonly IDeleteTeacherHandler _deleteTeacherHandler;
-    private readonly IValidator<CreateTeacherRequest> _createValidator;
-    private readonly IValidator<UpdateTeacherRequest> _updateValidator;
-    private readonly ILogger<TeachersController> _logger;
+    private readonly ICreateTeacherHandler _createHandler;
+    private readonly IGetTeacherHandler _getHandler;
+    private readonly IGetTeachersHandler _getAllHandler;
+    private readonly IUpdateTeacherHandler _updateHandler;
+    private readonly CreateTeacherValidator _createValidator;
+    private readonly UpdateTeacherValidator _updateValidator;
 
-    public TeachersController(
-        IGetTeachersHandler getTeachersHandler,
-        IGetTeacherHandler getTeacherHandler,
-        ICreateTeacherHandler createTeacherHandler,
-        IUpdateTeacherHandler updateTeacherHandler,
-        IDeleteTeacherHandler deleteTeacherHandler,
-        IValidator<CreateTeacherRequest> createValidator,
-        IValidator<UpdateTeacherRequest> updateValidator,
-        ILogger<TeachersController> logger)
+    public TeachersController(ICreateTeacherHandler createHandler, IGetTeacherHandler getHandler,
+        IGetTeachersHandler getAllHandler, IUpdateTeacherHandler updateHandler,
+        CreateTeacherValidator createValidator, UpdateTeacherValidator updateValidator)
     {
-        _getTeachersHandler = getTeachersHandler;
-        _getTeacherHandler = getTeacherHandler;
-        _createTeacherHandler = createTeacherHandler;
-        _updateTeacherHandler = updateTeacherHandler;
-        _deleteTeacherHandler = deleteTeacherHandler;
+        _createHandler = createHandler;
+        _getHandler = getHandler;
+        _getAllHandler = getAllHandler;
+        _updateHandler = updateHandler;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
-        _logger = logger;
     }
 
-    /// <summary>
-    /// Get all teachers.
-    /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll([FromQuery] Guid? tenantUuid, [FromQuery] Guid? specializationUuid, CancellationToken cancellationToken)
     {
         try
         {
-            var request = new GetTeachersRequest();
-            var teachers = await _getTeachersHandler.Handle(request, cancellationToken);
-
-            return Ok(ApiResponse<List<TeacherResponse>>.SuccessResult(
-                teachers,
-                $"Retrieved {teachers.Count} teachers"));
+            var response = await _getAllHandler.HandleAsync(new GetTeachersRequest { TenantUuid = tenantUuid, SpecializationUuid = specializationUuid }, cancellationToken);
+            return Ok(ApiResponse<List<TeacherDto>>.SuccessResult(response.Teachers));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching teachers");
-            return StatusCode(500, ApiResponse<object>.FailureResult(
-                "An error occurred while fetching teachers",
-                new List<string> { ex.Message }));
+            return StatusCode(500, ApiResponse<List<TeacherDto>>.FailureResult(ex.Message));
         }
     }
 
-    /// <summary>
-    /// Get a teacher by UUID.
-    /// </summary>
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    [HttpGet("{uuid:guid}")]
+    public async Task<IActionResult> GetById(Guid uuid, CancellationToken cancellationToken)
     {
         try
         {
-            var teacher = await _getTeacherHandler.Handle(id, cancellationToken);
-
-            if (teacher == null)
-            {
-                return NotFound(ApiResponse<object>.FailureResult(
-                    $"Teacher with UUID {id} not found"));
-            }
-
-            return Ok(ApiResponse<TeacherResponse>.SuccessResult(
-                teacher,
-                "Teacher retrieved successfully"));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching teacher {TeacherUuid}", id);
-            return StatusCode(500, ApiResponse<object>.FailureResult(
-                "An error occurred while fetching the teacher",
-                new List<string> { ex.Message }));
-        }
-    }
-
-    /// <summary>
-    /// Create a new teacher.
-    /// </summary>
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateTeacherRequest request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(ApiResponse<object>.FailureResult(
-                    "Validation failed",
-                    validationResult.Errors.Select(e => e.ErrorMessage).ToList()));
-            }
-
-            var response = await _createTeacherHandler.Handle(request, cancellationToken);
-
-            return Created($"/api/teachers/{response.TeacherUuid}",
-                ApiResponse<CreateTeacherResponse>.SuccessResult(
-                    response,
-                    "Teacher created successfully"));
+            var response = await _getHandler.HandleAsync(new GetTeacherRequest { TeacherUuid = uuid }, cancellationToken);
+            return Ok(ApiResponse<TeacherDto>.SuccessResult(response.Teacher));
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning(ex, "Validation error creating teacher");
-            return BadRequest(ApiResponse<object>.FailureResult(
-                ex.Message));
+            return NotFound(ApiResponse<TeacherDto>.FailureResult(ex.Message));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating teacher");
-            return StatusCode(500, ApiResponse<object>.FailureResult(
-                "An error occurred while creating the teacher",
-                new List<string> { ex.Message }));
+            return StatusCode(500, ApiResponse<TeacherDto>.FailureResult(ex.Message));
         }
     }
 
-    /// <summary>
-    /// Update an existing teacher.
-    /// </summary>
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTeacherRequest request, CancellationToken cancellationToken)
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateTeacherDto dto, CancellationToken cancellationToken)
     {
+        var validationResult = await _createValidator.ValidateAsync(dto, cancellationToken);
+        if (!validationResult.IsValid)
+            return BadRequest(ApiResponse<TeacherDto>.FailureResult(string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))));
+
         try
         {
-            var validationResult = await _updateValidator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(ApiResponse<object>.FailureResult(
-                    "Validation failed",
-                    validationResult.Errors.Select(e => e.ErrorMessage).ToList()));
-            }
-
-            var response = await _updateTeacherHandler.Handle(id, request, cancellationToken);
-
-            if (response == null)
-            {
-                return NotFound(ApiResponse<object>.FailureResult(
-                    $"Teacher with UUID {id} not found"));
-            }
-
-            return Ok(ApiResponse<UpdateTeacherResponse>.SuccessResult(
-                response,
-                "Teacher updated successfully"));
+            var response = await _createHandler.HandleAsync(new CreateTeacherRequest { Teacher = dto }, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { uuid = response.Teacher.TeacherUuid }, ApiResponse<TeacherDto>.SuccessResult(response.Teacher));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<TeacherDto>.FailureResult(ex.Message));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating teacher {TeacherUuid}", id);
-            return StatusCode(500, ApiResponse<object>.FailureResult(
-                "An error occurred while updating the teacher",
-                new List<string> { ex.Message }));
+            return StatusCode(500, ApiResponse<TeacherDto>.FailureResult(ex.Message));
         }
     }
 
-    /// <summary>
-    /// Soft delete a teacher.
-    /// </summary>
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    [HttpPut("{uuid:guid}")]
+    public async Task<IActionResult> Update(Guid uuid, [FromBody] UpdateTeacherDto dto, CancellationToken cancellationToken)
     {
+        var validationResult = await _updateValidator.ValidateAsync(dto, cancellationToken);
+        if (!validationResult.IsValid)
+            return BadRequest(ApiResponse<TeacherDto>.FailureResult(string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))));
+
         try
         {
-            var success = await _deleteTeacherHandler.Handle(id, cancellationToken);
-
-            if (!success)
-            {
-                return NotFound(ApiResponse<object>.FailureResult(
-                    $"Teacher with UUID {id} not found"));
-            }
-
-            return Ok(ApiResponse<object>.SuccessResult(
-                new { },
-                "Teacher deleted successfully"));
+            var response = await _updateHandler.HandleAsync(new UpdateTeacherRequest { TeacherUuid = uuid, Teacher = dto }, cancellationToken);
+            return Ok(ApiResponse<TeacherDto>.SuccessResult(response.Teacher));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ApiResponse<TeacherDto>.FailureResult(ex.Message));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting teacher {TeacherUuid}", id);
-            return StatusCode(500, ApiResponse<object>.FailureResult(
-                "An error occurred while deleting the teacher",
-                new List<string> { ex.Message }));
+            return StatusCode(500, ApiResponse<TeacherDto>.FailureResult(ex.Message));
         }
     }
 }

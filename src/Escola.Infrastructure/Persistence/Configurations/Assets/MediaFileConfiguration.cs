@@ -76,7 +76,7 @@ public class MediaFileConfiguration : IEntityTypeConfiguration<MediaFile>
 
         // Relationships
         builder.HasOne(m => m.Tenant)
-            .WithMany(t => t.MediaFiles)
+            .WithMany()
             .HasForeignKey(m => m.TenantId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_media_files_tenant_id");

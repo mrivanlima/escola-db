@@ -32,9 +32,8 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(t => t.TenantType)
-            .HasColumnName("tenant_type")
-            .HasMaxLength(50);
+        builder.Property(t => t.TenantTypeId)
+            .HasColumnName("tenant_type_id");
 
         builder.Property(t => t.TenantConfig)
             .HasColumnName("tenant_config")
@@ -71,6 +70,35 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 
         builder.HasIndex(t => t.DeletedAt)
             .HasDatabaseName("idx_tenants_deleted_at");
+
+        // Relationships
+        builder.HasOne(t => t.TenantType)
+            .WithMany()
+            .HasForeignKey(t => t.TenantTypeId)
+            .HasConstraintName("fk_tenants_tenant_type_id")
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(t => t.Creator)
+            .WithMany()
+            .HasForeignKey(t => t.CreatedBy)
+            .HasConstraintName("fk_tenants_created_by")
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(t => t.Updater)
+            .WithMany()
+            .HasForeignKey(t => t.UpdatedBy)
+            .HasConstraintName("fk_tenants_updated_by")
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(t => t.AppUsers)
+            .WithOne(u => u.Tenant)
+            .HasForeignKey(u => u.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(t => t.Students)
+            .WithOne(s => s.Tenant)
+            .HasForeignKey(s => s.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Query filter for soft delete
         builder.HasQueryFilter(t => t.DeletedAt == null);

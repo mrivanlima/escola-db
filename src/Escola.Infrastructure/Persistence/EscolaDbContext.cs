@@ -24,12 +24,19 @@ public class EscolaDbContext : DbContext
     public DbSet<MediaFile> MediaFiles => Set<MediaFile>();
 
     // School Schema
+    public DbSet<GradeLevel> GradeLevels => Set<GradeLevel>();
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Guardian> Guardians => Set<Guardian>();
     public DbSet<StudentGuardian> StudentGuardians => Set<StudentGuardian>();
     public DbSet<Class> Classes => Set<Class>();
+    public DbSet<Specialization> Specializations => Set<Specialization>();
     public DbSet<Teacher> Teachers => Set<Teacher>();
     public DbSet<ClassStudent> ClassStudents => Set<ClassStudent>();
+    public DbSet<Subject> Subjects => Set<Subject>();
+    public DbSet<ProficiencyLevel> ProficiencyLevels => Set<ProficiencyLevel>();
+    public DbSet<Certification> Certifications => Set<Certification>();
+    public DbSet<TeacherSubject> TeacherSubjects => Set<TeacherSubject>();
+    public DbSet<TeacherCertification> TeacherCertifications => Set<TeacherCertification>();
 
     // Content Schema
     public DbSet<Module> Modules => Set<Module>();

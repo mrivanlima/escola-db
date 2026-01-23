@@ -1,3 +1,5 @@
+using Escola.Domain.Identity;
+
 namespace Escola.Domain.School;
 
 /// <summary>
@@ -6,91 +8,84 @@ namespace Escola.Domain.School;
 public class Class
 {
     /// <summary>
-    /// Internal database ID.
+    /// Internal database ID. Maps to: class_id
     /// </summary>
     public int ClassId { get; set; }
 
     /// <summary>
-    /// External UUID for API exposure.
+    /// External UUID for API exposure. Maps to: class_uuid
     /// </summary>
     public Guid ClassUuid { get; set; }
 
     /// <summary>
-    /// Tenant ID this class belongs to.
+    /// Tenant ID. Maps to: tenant_id
     /// </summary>
     public int TenantId { get; set; }
 
     /// <summary>
-    /// Class name (e.g., "Morning Kindergarten").
+    /// Class name. Maps to: class_name
     /// </summary>
     public string ClassName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Normalized class name for search (lowercase, no accents).
+    /// Normalized class name. Maps to: class_name_normalized
     /// </summary>
     public string ClassNameNormalized { get; set; } = string.Empty;
 
     /// <summary>
-    /// Grade level (e.g., "K", "1st", "2nd").
+    /// Grade level ID. Maps to: grade_level_id
     /// </summary>
-    public string? GradeLevel { get; set; }
+    public short? GradeLevelId { get; set; }
 
     /// <summary>
-    /// Normalized grade level for search (lowercase, no accents).
+    /// School year ID. Maps to: school_year_id
     /// </summary>
-    public string? GradeLevelNormalized { get; set; }
+    public short SchoolYearId { get; set; }
 
     /// <summary>
-    /// School year (e.g., "2025-2026").
-    /// </summary>
-    public string? SchoolYear { get; set; }
-
-    /// <summary>
-    /// Normalized school year for search (lowercase).
-    /// </summary>
-    public string? SchoolYearNormalized { get; set; }
-
-    /// <summary>
-    /// Maximum number of students allowed.
+    /// Maximum students. Maps to: max_students
     /// </summary>
     public int? MaxStudents { get; set; }
 
     /// <summary>
-    /// JSON configuration for class-specific settings.
+    /// Class config. Maps to: class_config
     /// </summary>
     public string? ClassConfig { get; set; }
 
     /// <summary>
-    /// Indicates if the class is active.
+    /// Is active. Maps to: is_active
     /// </summary>
     public bool IsActive { get; set; } = true;
 
     /// <summary>
-    /// Timestamp when the class was created.
+    /// Created at. Maps to: created_at
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }
 
     /// <summary>
-    /// User ID who created this class.
+    /// Created by. Maps to: created_by
     /// </summary>
     public int? CreatedBy { get; set; }
 
     /// <summary>
-    /// Timestamp when the class was last updated.
+    /// Updated at. Maps to: updated_at
     /// </summary>
     public DateTimeOffset? UpdatedAt { get; set; }
 
     /// <summary>
-    /// User ID who last updated this class.
+    /// Updated by. Maps to: updated_by
     /// </summary>
     public int? UpdatedBy { get; set; }
 
     /// <summary>
-    /// Soft delete timestamp.
+    /// Soft delete. Maps to: deleted_at
     /// </summary>
     public DateTimeOffset? DeletedAt { get; set; }
 
-    // Navigation properties
-    public virtual Identity.Tenant Tenant { get; set; } = null!;
-    public virtual ICollection<ClassStudent> ClassStudents { get; set; } = new List<ClassStudent>();
+    public Tenant Tenant { get; set; } = null!;
+    public GradeLevel? GradeLevel { get; set; }
+    public SchoolYear SchoolYear { get; set; } = null!;
+    public AppUser? CreatedByUser { get; set; }
+    public AppUser? UpdatedByUser { get; set; }
+    public ICollection<ClassStudent> ClassStudents { get; set; } = new List<ClassStudent>();
 }

@@ -1,3 +1,4 @@
+using Escola.Application.Services;
 using Escola.Application.UseCases.Students.DeleteStudent;
 using Escola.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -11,17 +12,24 @@ namespace Escola.Infrastructure.UseCases.Students;
 public class DeleteStudentHandler : IDeleteStudentHandler
 {
     private readonly EscolaDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteStudentHandler(EscolaDbContext context)
+    public DeleteStudentHandler(EscolaDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<bool> Handle(Guid studentUuid, CancellationToken cancellationToken = default)
     {
-        // Find the student by UUID
+        // Get current tenant ID from context
+        var currentTenantId = _currentUserService.GetCurrentTenantId();
+        if (!currentTenantId.HasValue)
+            throw new UnauthorizedAccessException("No tenant context available");
+
+        // Find the student by UUID with tenant filtering
         var student = await _context.Students
-            .FirstOrDefaultAsync(s => s.StudentUuid == studentUuid, cancellationToken);
+            .FirstOrDefaultAsync(s => s.StudentUuid == studentUuid && s.TenantId == currentTenantId.Value && s.DeletedAt == null, cancellationToken);
 
         if (student == null)
         {

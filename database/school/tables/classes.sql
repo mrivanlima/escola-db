@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS school.classes (
     
     -- 3. Full Audit Trail
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by      INTEGER NOT NULL,
+    created_by      INTEGER, -- Nullable for system-generated records
     updated_at      TIMESTAMPTZ,
     updated_by      INTEGER,
     deleted_at      TIMESTAMPTZ, -- Soft Delete

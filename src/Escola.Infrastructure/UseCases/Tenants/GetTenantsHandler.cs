@@ -1,3 +1,4 @@
+using Escola.Application.DTOs.Identity;
 using Escola.Application.UseCases.Tenants.GetTenants;
 using Escola.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ public class GetTenantsHandler : IGetTenantsHandler
 
         var tenants = await _context.Tenants
             .AsNoTracking()
+            .Include(t => t.TenantType)
             .OrderBy(t => t.TenantName)
             .ToListAsync(cancellationToken);
 
@@ -36,10 +38,12 @@ public class GetTenantsHandler : IGetTenantsHandler
             {
                 TenantUuid = t.TenantUuid,
                 TenantName = t.TenantName,
-                TenantType = t.TenantType,
+                TenantTypeUuid = t.TenantType != null ? t.TenantType.TenantTypeUuid : null,
+                TenantTypeName = t.TenantType != null ? t.TenantType.TypeName : null,
+                TenantConfig = t.TenantConfig,
                 IsActive = t.IsActive,
-                CreatedAt = t.CreatedAt,
-                UpdatedAt = t.UpdatedAt
+                CreatedAt = t.CreatedAt.DateTime,
+                UpdatedAt = t.UpdatedAt.HasValue ? t.UpdatedAt.Value.DateTime : null
             }).ToList()
         };
 

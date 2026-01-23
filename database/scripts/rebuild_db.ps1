@@ -45,7 +45,8 @@ DROP SCHEMA IF EXISTS school CASCADE;
 DROP SCHEMA IF EXISTS assets CASCADE;
 DROP SCHEMA IF EXISTS identity CASCADE;"
     
-    [System.IO.File]::WriteAllText("$PSScriptRoot\temp_drop.sql", $dropSQL, [System.Text.Encoding]::UTF8)
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText("$PSScriptRoot\temp_drop.sql", $dropSQL, $utf8NoBom)
     
     & "C:\Program Files\PostgreSQL\17\bin\psql.exe" `
         -h $Server `

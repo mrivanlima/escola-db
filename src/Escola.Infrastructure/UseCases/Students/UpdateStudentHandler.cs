@@ -1,3 +1,4 @@
+using Escola.Application.Services;
 using Escola.Application.UseCases.Students.UpdateStudent;
 using Escola.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -10,17 +11,24 @@ namespace Escola.Infrastructure.UseCases.Students;
 public class UpdateStudentHandler : IUpdateStudentHandler
 {
     private readonly EscolaDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateStudentHandler(EscolaDbContext context)
+    public UpdateStudentHandler(EscolaDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<UpdateStudentResponse?> Handle(Guid studentUuid, UpdateStudentRequest request, CancellationToken cancellationToken = default)
     {
-        // Find the student by UUID
+        // Get current tenant ID from context
+        var currentTenantId = _currentUserService.GetCurrentTenantId();
+        if (!currentTenantId.HasValue)
+            throw new UnauthorizedAccessException("No tenant context available");
+
+        // Find the student by UUID with tenant filtering
         var student = await _context.Students
-            .FirstOrDefaultAsync(s => s.StudentUuid == studentUuid, cancellationToken);
+            .FirstOrDefaultAsync(s => s.StudentUuid == studentUuid && s.TenantId == currentTenantId.Value && s.DeletedAt == null, cancellationToken);
 
         if (student == null)
         {
@@ -34,7 +42,7 @@ public class UpdateStudentHandler : IUpdateStudentHandler
         student.Nickname = request.Nickname;
         student.BirthDate = request.BirthDate;
         student.UpdatedAt = DateTimeOffset.UtcNow;
-        student.UpdatedBy = 1; // TODO: Replace with actual authenticated user ID
+        student.UpdatedBy = _currentUserService.GetCurrentUserId();
 
         await _context.SaveChangesAsync(cancellationToken);
 

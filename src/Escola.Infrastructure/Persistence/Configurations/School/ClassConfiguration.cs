@@ -1,3 +1,4 @@
+using Escola.Domain.Identity;
 using Escola.Domain.School;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -8,16 +9,13 @@ public class ClassConfiguration : IEntityTypeConfiguration<Class>
 {
     public void Configure(EntityTypeBuilder<Class> builder)
     {
-        // Table mapping
         builder.ToTable("classes", "school");
 
-        // Primary key
         builder.HasKey(c => c.ClassId);
         builder.Property(c => c.ClassId)
             .HasColumnName("class_id")
             .ValueGeneratedOnAdd();
 
-        // Properties
         builder.Property(c => c.ClassUuid)
             .HasColumnName("class_uuid")
             .IsRequired();
@@ -36,21 +34,12 @@ public class ClassConfiguration : IEntityTypeConfiguration<Class>
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(c => c.GradeLevel)
-            .HasColumnName("grade_level")
-            .HasMaxLength(50);
+        builder.Property(c => c.GradeLevelId)
+            .HasColumnName("grade_level_id");
 
-        builder.Property(c => c.GradeLevelNormalized)
-            .HasColumnName("grade_level_normalized")
-            .HasMaxLength(50);
-
-        builder.Property(c => c.SchoolYear)
-            .HasColumnName("school_year")
-            .HasMaxLength(50);
-
-        builder.Property(c => c.SchoolYearNormalized)
-            .HasColumnName("school_year_normalized")
-            .HasMaxLength(50);
+        builder.Property(c => c.SchoolYearId)
+            .HasColumnName("school_year_id")
+            .IsRequired();
 
         builder.Property(c => c.MaxStudents)
             .HasColumnName("max_students");
@@ -80,14 +69,36 @@ public class ClassConfiguration : IEntityTypeConfiguration<Class>
         builder.Property(c => c.DeletedAt)
             .HasColumnName("deleted_at");
 
-        // Relationships
         builder.HasOne(c => c.Tenant)
-            .WithMany(t => t.Classes)
+            .WithMany()
             .HasForeignKey(c => c.TenantId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_classes_tenant_id");
 
-        // Indexes
+        builder.HasOne(c => c.GradeLevel)
+            .WithMany()
+            .HasForeignKey(c => c.GradeLevelId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_classes_grade_level_id");
+
+        builder.HasOne(c => c.SchoolYear)
+            .WithMany()
+            .HasForeignKey(c => c.SchoolYearId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_classes_school_year_id");
+
+        builder.HasOne(c => c.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(c => c.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_classes_created_by");
+
+        builder.HasOne(c => c.UpdatedByUser)
+            .WithMany()
+            .HasForeignKey(c => c.UpdatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_classes_updated_by");
+
         builder.HasIndex(c => c.ClassUuid)
             .IsUnique()
             .HasDatabaseName("uq_classes_class_uuid");
@@ -101,7 +112,6 @@ public class ClassConfiguration : IEntityTypeConfiguration<Class>
         builder.HasIndex(c => c.DeletedAt)
             .HasDatabaseName("idx_classes_deleted_at");
 
-        // Query filter for soft delete
         builder.HasQueryFilter(c => c.DeletedAt == null);
     }
 }

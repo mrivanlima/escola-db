@@ -1,3 +1,4 @@
+using Escola.Application.Services;
 using Escola.Application.UseCases.Students.GetStudents;
 using Escola.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -10,18 +11,25 @@ namespace Escola.Infrastructure.UseCases.Students;
 public class GetStudentsHandler : IGetStudentsHandler
 {
     private readonly EscolaDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetStudentsHandler(EscolaDbContext context)
+    public GetStudentsHandler(EscolaDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<List<StudentResponse>> Handle(GetStudentsRequest request, CancellationToken cancellationToken = default)
     {
-        // AsNoTracking for read-only queries
-        // Global query filter automatically excludes soft-deleted records (DeletedAt IS NULL)
+        // Get current tenant ID from context
+        var currentTenantId = _currentUserService.GetCurrentTenantId();
+        if (!currentTenantId.HasValue)
+            throw new UnauthorizedAccessException("No tenant context available");
+
+        // AsNoTracking for read-only queries with tenant filtering
         var students = await _context.Students
             .AsNoTracking()
+            .Where(s => s.TenantId == currentTenantId.Value && s.DeletedAt == null)
             .OrderBy(s => s.FirstName)
             .ThenBy(s => s.LastName)
             .Select(s => new StudentResponse
