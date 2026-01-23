@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS content.modules (
     -- 2. Business Data
     module_name     TEXT NOT NULL,
     description     TEXT,
-    module_type     TEXT NOT NULL, -- 'math', 'reading', 'science', 'art', etc.
+    module_type_id  SMALLINT NOT NULL, -- FK to content.module_types
     difficulty_level INTEGER NOT NULL, -- 1-10 scale
     
     -- 2.1. Normalized columns for search
@@ -38,14 +38,21 @@ CREATE TABLE IF NOT EXISTS content.modules (
     
     CONSTRAINT fk_modules_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_modules_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_modules_module_type FOREIGN KEY (module_type_id)
+        REFERENCES content.module_types (module_type_id),
 
     CONSTRAINT ck_modules_name CHECK (LENGTH(module_name) >= 2),
     CONSTRAINT ck_modules_difficulty CHECK (difficulty_level BETWEEN 1 AND 10),
-    CONSTRAINT ck_modules_age_range CHECK (recommended_age_min IS NULL OR recommended_age_max IS NULL OR recommended_age_min <= recommended_age_max)
+    CONSTRAINT ck_modules_age_range CHECK (recommended_age_min IS NULL OR recommended_age_max IS NULL OR recommended_age_min <= recommended_age_max),
+    CONSTRAINT ck_modules_config_is_object CHECK (module_config IS NULL OR jsonb_typeof(module_config) = 'object')
 );
 
 -- 5. Indexes
-CREATE INDEX IF NOT EXISTS idx_modules_type ON content.modules(module_type);
+CREATE INDEX IF NOT EXISTS idx_modules_type ON content.modules(module_type_id);
 CREATE INDEX IF NOT EXISTS idx_modules_difficulty ON content.modules(difficulty_level);
 CREATE INDEX IF NOT EXISTS idx_modules_name_normalized ON content.modules(module_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_modules_description_normalized ON content.modules(description_normalized);
@@ -64,5 +71,6 @@ FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 COMMENT ON TABLE content.modules IS 'Learning modules/courses: root of content hierarchy';
 COMMENT ON COLUMN content.modules.module_id IS 'INTERNAL PK: Int. Never expose to API';
 COMMENT ON COLUMN content.modules.module_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
+COMMENT ON COLUMN content.modules.module_type_id IS 'FK to content.module_types lookup table';
 COMMENT ON COLUMN content.modules.recommended_age_min IS 'Minimum recommended age in months (e.g., 36 = 3 years)';
 COMMENT ON COLUMN content.modules.module_config IS 'JSON: {"tags": ["shapes"], "prerequisites": [module_uuid], "duration_minutes": 30}';

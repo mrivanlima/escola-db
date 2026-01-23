@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS content.usage_contexts (
     
     CONSTRAINT fk_usage_contexts_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_usage_contexts_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_usage_contexts_code CHECK (LENGTH(usage_context_code) >= 2),
     CONSTRAINT ck_usage_contexts_name CHECK (LENGTH(usage_context_name) >= 2)
@@ -71,12 +74,13 @@ COMMENT ON COLUMN content.usage_contexts.display_order IS 'Order for displaying 
 COMMENT ON COLUMN content.usage_contexts.icon_name IS 'Icon identifier for frontend rendering';
 
 -- 9. Seed Data (Common Usage Contexts)
-INSERT INTO content.usage_contexts (usage_context_code, usage_context_name, description, display_order, icon_name, created_by)
-VALUES 
-    ('instruction', 'Instruction', 'Resource used to explain instructions or guide the user', 1, 'info_icon', 1),
-    ('question', 'Question', 'Resource that presents a question or challenge', 2, 'question_icon', 1),
-    ('answer', 'Answer', 'Resource that shows the correct answer or solution', 3, 'check_icon', 1),
-    ('feedback', 'Feedback', 'Resource providing feedback on user performance', 4, 'feedback_icon', 1),
-    ('hint', 'Hint', 'Resource providing a hint to help solve the problem', 5, 'lightbulb_icon', 1),
-    ('example', 'Example', 'Resource showing an example to illustrate the concept', 6, 'example_icon', 1)
-ON CONFLICT (usage_context_code) DO NOTHING;
+-- MOVED: Seed data moved to database/seed_data.sql to run after all tables are created
+-- INSERT INTO content.usage_contexts (usage_context_code, usage_context_name, description, display_order, icon_name, created_by)
+-- VALUES 
+--     ('instruction', 'Instruction', 'Resource used to explain instructions or guide the user', 1, 'info_icon', 1),
+--     ('question', 'Question', 'Resource that presents a question or challenge', 2, 'question_icon', 1),
+--     ('answer', 'Answer', 'Resource that shows the correct answer or solution', 3, 'check_icon', 1),
+--     ('feedback', 'Feedback', 'Resource providing feedback on user performance', 4, 'feedback_icon', 1),
+--     ('hint', 'Hint', 'Resource providing a hint to help solve the problem', 5, 'lightbulb_icon', 1),
+--     ('example', 'Example', 'Resource showing an example to illustrate the concept', 6, 'example_icon', 1)
+-- ON CONFLICT (usage_context_code) DO NOTHING;

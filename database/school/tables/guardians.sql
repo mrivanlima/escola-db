@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS school.guardians (
     
     -- 2. Business Data
     phone_number    TEXT,
-    relationship    TEXT NOT NULL, -- 'father', 'mother', 'legal_guardian', 'other'
+    relationship_type_id SMALLINT NOT NULL, -- FK to school.relationship_types
     is_primary      BOOLEAN NOT NULL DEFAULT FALSE, -- Primary contact
     
     -- 3. Full Audit Trail
@@ -36,8 +36,12 @@ CREATE TABLE IF NOT EXISTS school.guardians (
     
     CONSTRAINT fk_guardians_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
-
-    CONSTRAINT ck_guardians_relationship CHECK (relationship IN ('father', 'mother', 'legal_guardian', 'other'))
+    
+    CONSTRAINT fk_guardians_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_guardians_relationship FOREIGN KEY (relationship_type_id)
+        REFERENCES school.relationship_types (relationship_type_id)
 );
 
 -- 5. Indexes
@@ -61,4 +65,5 @@ COMMENT ON TABLE school.guardians IS 'Parents/Legal guardians linked to app_user
 COMMENT ON COLUMN school.guardians.guardian_id IS 'INTERNAL PK: Int. Never expose to API';
 COMMENT ON COLUMN school.guardians.guardian_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
 COMMENT ON COLUMN school.guardians.user_id IS 'FK to identity.app_users (1:1 relationship)';
+COMMENT ON COLUMN school.guardians.relationship_type_id IS 'FK to school.relationship_types: defines guardian-student relationship';
 COMMENT ON COLUMN school.guardians.is_primary IS 'Indicates primary contact for notifications/communications';

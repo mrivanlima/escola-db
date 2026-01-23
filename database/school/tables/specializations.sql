@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS school.specializations (
     
     CONSTRAINT fk_specializations_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_specializations_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_specializations_name CHECK (LENGTH(specialization_name) >= 2)
 );

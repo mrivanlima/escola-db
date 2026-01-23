@@ -39,6 +39,9 @@ CREATE TABLE IF NOT EXISTS school.student_guardians (
         REFERENCES school.guardians (guardian_id),
     
     CONSTRAINT fk_student_guardians_created FOREIGN KEY (created_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_student_guardians_updated FOREIGN KEY (updated_by)
         REFERENCES identity.app_users (user_id)
 );
 

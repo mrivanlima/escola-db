@@ -21,6 +21,12 @@ public class Student
     public int TenantId { get; set; }
 
     /// <summary>
+    /// Optional user ID for Hybrid Authentication Model.
+    /// Links student to app_users for future student login capability.
+    /// </summary>
+    public int? UserId { get; set; }
+
+    /// <summary>
     /// Student's nickname/preferred name.
     /// </summary>
     public string? Nickname { get; set; }

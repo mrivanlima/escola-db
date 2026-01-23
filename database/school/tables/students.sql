@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS school.students (
     student_id      INTEGER GENERATED ALWAYS AS IDENTITY,
     student_uuid    UUID NOT NULL DEFAULT gen_random_uuid(),
     tenant_id       INTEGER NOT NULL,
+    user_id         INTEGER, -- Nullable: Optional link for Hybrid Auth Model (future student logins)
     
     -- 2. Business Data
     nickname        TEXT NOT NULL,
@@ -39,13 +40,20 @@ CREATE TABLE IF NOT EXISTS school.students (
     CONSTRAINT fk_students_tenant FOREIGN KEY (tenant_id) 
         REFERENCES identity.tenants (tenant_id),
     
+    CONSTRAINT fk_students_user FOREIGN KEY (user_id)
+        REFERENCES identity.app_users (user_id),
+    
     CONSTRAINT fk_students_created FOREIGN KEY (created_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_students_updated FOREIGN KEY (updated_by)
         REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_students_nickname CHECK (LENGTH(nickname) >= 2),
     CONSTRAINT ck_students_first_name CHECK (LENGTH(first_name) >= 2),
     CONSTRAINT ck_students_last_name CHECK (LENGTH(last_name) >= 2),
-    CONSTRAINT ck_students_birth_date CHECK (birth_date <= CURRENT_DATE)
+    CONSTRAINT ck_students_birth_date CHECK (birth_date <= CURRENT_DATE),
+    CONSTRAINT ck_students_avatar_config CHECK (avatar_config IS NULL OR jsonb_typeof(avatar_config) = 'object')
 );
 
 -- 5. Indexes
@@ -130,4 +138,4 @@ COMMENT ON COLUMN school.students.last_name IS 'Student last name (required)';
 COMMENT ON COLUMN school.students.first_name_normalized IS 'GENERATED: Normalized first name (lowercase, no accents) for search';
 COMMENT ON COLUMN school.students.middle_name_normalized IS 'GENERATED: Normalized middle name (lowercase, no accents) for search';
 COMMENT ON COLUMN school.students.last_name_normalized IS 'GENERATED: Normalized last name (lowercase, no accents) for search';
-COMMENT ON COLUMN school.students.avatar_config IS 'JSON: {"hair": int, "color": hex, "accessories": []}. Visual customization';
+COMMENT ON COLUMN school.students.avatar_config IS 'JSON: {"hair": int, "color": hex, "accessories": []}. Visual customization. Must be object type';

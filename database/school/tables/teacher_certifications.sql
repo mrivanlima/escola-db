@@ -33,6 +33,9 @@ CREATE TABLE IF NOT EXISTS school.teacher_certifications (
     
     CONSTRAINT fk_teacher_certifications_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_teacher_certifications_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_teacher_certifications_dates CHECK (expiry_date IS NULL OR expiry_date >= obtained_date)
 );

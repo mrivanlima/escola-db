@@ -12,12 +12,11 @@ CREATE TABLE IF NOT EXISTS school.subjects (
     -- 2. Business Data
     subject_name    TEXT NOT NULL,
     description     TEXT,
-    grade_level     TEXT, -- "pre-k", "kindergarten", "1st-grade", etc.
+    grade_level_id  SMALLINT, -- FK to school.grade_levels
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     
     -- 2.1. Normalized columns for search
     subject_name_normalized TEXT GENERATED ALWAYS AS (LOWER(immutable_unaccent(subject_name))) STORED,
-    grade_level_normalized  TEXT GENERATED ALWAYS AS (LOWER(immutable_unaccent(COALESCE(grade_level, '')))) STORED,
     
     -- 3. Full Audit Trail
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -33,13 +32,19 @@ CREATE TABLE IF NOT EXISTS school.subjects (
     
     CONSTRAINT fk_subjects_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_subjects_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_subjects_grade_level FOREIGN KEY (grade_level_id)
+        REFERENCES school.grade_levels (grade_level_id),
 
     CONSTRAINT ck_subjects_name CHECK (LENGTH(subject_name) >= 2)
 );
 
 -- 5. Indexes
 CREATE INDEX IF NOT EXISTS idx_subjects_name_normalized ON school.subjects(subject_name_normalized);
-CREATE INDEX IF NOT EXISTS idx_subjects_grade_level_normalized ON school.subjects(grade_level_normalized);
+CREATE INDEX IF NOT EXISTS idx_subjects_grade_level ON school.subjects(grade_level_id);
 CREATE INDEX IF NOT EXISTS idx_subjects_deleted_at ON school.subjects(deleted_at) WHERE deleted_at IS NULL;
 
 -- 6. Trigger for Updated At
@@ -62,4 +67,4 @@ COMMENT ON TABLE school.subjects IS 'Reference table for teaching subjects (e.g.
 COMMENT ON COLUMN school.subjects.subject_id IS 'INTERNAL PK: Int. Never expose to API';
 COMMENT ON COLUMN school.subjects.subject_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
 COMMENT ON COLUMN school.subjects.subject_name IS 'Display name of subject';
-COMMENT ON COLUMN school.subjects.grade_level IS 'Target grade level for this subject (optional)';
+COMMENT ON COLUMN school.subjects.grade_level_id IS 'FK to school.grade_levels: target grade level for this subject (optional)';

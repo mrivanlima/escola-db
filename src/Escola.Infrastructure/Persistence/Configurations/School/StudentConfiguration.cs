@@ -26,6 +26,10 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
             .HasColumnName("tenant_id")
             .IsRequired();
 
+        builder.Property(s => s.UserId)
+            .HasColumnName("user_id")
+            .IsRequired(false);
+
         builder.Property(s => s.Nickname)
             .HasColumnName("nickname")
             .HasMaxLength(100);
@@ -101,6 +105,13 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
             .HasForeignKey(s => s.TenantId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_students_tenant_id");
+
+        builder.HasOne<Domain.Identity.AppUser>()
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_students_user")
+            .IsRequired(false);
 
         builder.HasOne(s => s.Creator)
             .WithMany()

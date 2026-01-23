@@ -36,10 +36,14 @@ CREATE TABLE IF NOT EXISTS content.resource_types (
     
     CONSTRAINT fk_resource_types_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_resource_types_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_resource_types_code CHECK (LENGTH(resource_type_code) >= 2),
     CONSTRAINT ck_resource_types_name CHECK (LENGTH(resource_type_name) >= 2),
-    CONSTRAINT ck_resource_types_file_size CHECK (max_file_size_mb IS NULL OR max_file_size_mb > 0)
+    CONSTRAINT ck_resource_types_file_size CHECK (max_file_size_mb IS NULL OR max_file_size_mb > 0),
+    CONSTRAINT ck_resource_types_mime_is_array CHECK (mime_types IS NULL OR jsonb_typeof(mime_types) = 'array')
 );
 
 -- 5. Indexes
@@ -73,10 +77,11 @@ COMMENT ON COLUMN content.resource_types.max_file_size_mb IS 'Maximum file size 
 COMMENT ON COLUMN content.resource_types.icon_name IS 'Icon identifier for frontend rendering';
 
 -- 9. Seed Data (Common Resource Types)
-INSERT INTO content.resource_types (resource_type_code, resource_type_name, description, mime_types, max_file_size_mb, icon_name, created_by)
-VALUES 
-    ('image', 'Image', 'Image files (photos, illustrations, diagrams)', '["image/jpeg", "image/png", "image/gif", "image/webp"]'::jsonb, 10, 'image_icon', 1),
-    ('video', 'Video', 'Video files (lessons, demonstrations, animations)', '["video/mp4", "video/webm", "video/ogg"]'::jsonb, 100, 'video_icon', 1),
-    ('audio', 'Audio', 'Audio files (pronunciations, music, sound effects)', '["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp3"]'::jsonb, 20, 'audio_icon', 1),
-    ('document', 'Document', 'Document files (PDFs, worksheets)', '["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]'::jsonb, 25, 'document_icon', 1)
-ON CONFLICT (resource_type_code) DO NOTHING;
+-- MOVED: Seed data moved to database/seed_data.sql to run after all tables are created
+-- INSERT INTO content.resource_types (resource_type_code, resource_type_name, description, mime_types, max_file_size_mb, icon_name, created_by)
+-- VALUES 
+--     ('image', 'Image', 'Image files (photos, illustrations, diagrams)', '["image/jpeg", "image/png", "image/gif", "image/webp"]'::jsonb, 10, 'image_icon', 1),
+--     ('video', 'Video', 'Video files (lessons, demonstrations, animations)', '["video/mp4", "video/webm", "video/ogg"]'::jsonb, 100, 'video_icon', 1),
+--     ('audio', 'Audio', 'Audio files (pronunciations, music, sound effects)', '["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp3"]'::jsonb, 20, 'audio_icon', 1),
+--     ('document', 'Document', 'Document files (PDFs, worksheets)', '["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]'::jsonb, 25, 'document_icon', 1)
+-- ON CONFLICT (resource_type_code) DO NOTHING;

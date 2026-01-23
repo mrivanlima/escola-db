@@ -73,14 +73,15 @@ COMMENT ON COLUMN content.activity_types.default_points IS 'Default gamification
 COMMENT ON COLUMN content.activity_types.requires_interaction IS 'TRUE if activity requires user interaction (not passive like video)';
 
 -- 9. Seed Data (Common Activity Types)
-INSERT INTO content.activity_types (activity_type_code, activity_type_name, description, icon_name, default_points, requires_interaction, created_by)
-VALUES 
-    ('quiz', 'Quiz', 'Multiple choice or true/false questions', 'quiz_icon', 10, TRUE, 1),
-    ('game', 'Interactive Game', 'Gamified learning experience', 'game_icon', 15, TRUE, 1),
-    ('video', 'Video Lesson', 'Educational video content', 'video_icon', 5, FALSE, 1),
-    ('interactive', 'Interactive Activity', 'Hands-on interactive learning', 'interactive_icon', 12, TRUE, 1),
-    ('puzzle', 'Puzzle', 'Problem-solving puzzles', 'puzzle_icon', 10, TRUE, 1),
-    ('reading', 'Reading', 'Text-based reading activity', 'book_icon', 8, FALSE, 1),
-    ('drawing', 'Drawing Activity', 'Creative drawing exercise', 'draw_icon', 10, TRUE, 1),
-    ('matching', 'Matching Game', 'Match items or concepts', 'matching_icon', 10, TRUE, 1)
-ON CONFLICT (activity_type_code) DO NOTHING;
+-- MOVED: Seed data moved to database/seed_data.sql to run after all tables are created
+-- INSERT INTO content.activity_types (activity_type_code, activity_type_name, description, icon_name, default_points, requires_interaction, created_by)
+-- VALUES 
+--     ('quiz', 'Quiz', 'Multiple choice or true/false questions', 'quiz_icon', 10, TRUE, 1),
+--     ('game', 'Interactive Game', 'Gamified learning experience', 'game_icon', 15, TRUE, 1),
+--     ('video', 'Video Lesson', 'Educational video content', 'video_icon', 5, FALSE, 1),
+--     ('interactive', 'Interactive Activity', 'Hands-on interactive learning', 'interactive_icon', 12, TRUE, 1),
+--     ('puzzle', 'Puzzle', 'Problem-solving puzzles', 'puzzle_icon', 10, TRUE, 1),
+--     ('reading', 'Reading', 'Text-based reading activity', 'book_icon', 8, FALSE, 1),
+--     ('drawing', 'Drawing Activity', 'Creative drawing exercise', 'draw_icon', 10, TRUE, 1),
+--     ('matching', 'Matching Game', 'Match items or concepts', 'matching_icon', 10, TRUE, 1)
+-- ON CONFLICT (activity_type_code) DO NOTHING;

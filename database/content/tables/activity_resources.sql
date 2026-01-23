@@ -99,4 +99,3 @@ COMMENT ON COLUMN content.activity_resources.usage_context_id IS 'FK to content.
 COMMENT ON COLUMN content.activity_resources.media_file_id IS 'FK to assets.media_files (internal file_id): Ensures referential integrity';
 COMMENT ON COLUMN content.activity_resources.resource_config IS 'JSON: {"autoplay": true, "loop": false, "caption": "...", "thumbnail_time": 5}. Structure varies by resource_type_id.';
 COMMENT ON COLUMN content.activity_resources.is_required IS 'Whether this resource must be viewed/interacted with for activity completion';
-COMMENT ON COLUMN content.activity_resources.is_required IS 'Whether this resource must be viewed/interacted with for activity completion';

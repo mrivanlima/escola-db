@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS identity.tenants (
     
     -- 2. Business Data
     tenant_name     TEXT NOT NULL,
-    tenant_type     TEXT NOT NULL, -- 'school', 'individual', 'enterprise'
+    tenant_type_id  SMALLINT, -- FK to identity.tenant_types (added later to avoid circular dependency)
     tenant_config   JSONB, -- Flexible configuration: {"branding": {...}, "limits": {...}}
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     
@@ -27,12 +27,24 @@ CREATE TABLE IF NOT EXISTS identity.tenants (
     
     -- 4. Named Constraints (Bottom)
     CONSTRAINT pk_tenants PRIMARY KEY (tenant_id),
+    
+    -- NOTE: FK to tenant_types and app_users are added after all tables are created
+    -- to avoid circular dependencies
+    -- CONSTRAINT fk_tenants_type FOREIGN KEY (tenant_type_id)
+    --     REFERENCES identity.tenant_types (type_id),
+    -- 
+    -- CONSTRAINT fk_tenants_created FOREIGN KEY (created_by)
+    --     REFERENCES identity.app_users (user_id),
+    -- 
+    -- CONSTRAINT fk_tenants_updated FOREIGN KEY (updated_by)
+    --     REFERENCES identity.app_users (user_id),
+    
     CONSTRAINT ck_tenants_name CHECK (LENGTH(tenant_name) >= 2),
-    CONSTRAINT ck_tenants_type CHECK (tenant_type IN ('school', 'individual', 'enterprise'))
+    CONSTRAINT ck_tenants_tenant_config CHECK (tenant_config IS NULL OR jsonb_typeof(tenant_config) = 'object')
 );
 
 -- 5. Indexes
-CREATE INDEX IF NOT EXISTS idx_tenants_type ON identity.tenants(tenant_type);
+CREATE INDEX IF NOT EXISTS idx_tenants_type ON identity.tenants(tenant_type_id);
 CREATE INDEX IF NOT EXISTS idx_tenants_name_normalized ON identity.tenants(tenant_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_tenants_active ON identity.tenants(is_active) WHERE is_active = TRUE;
 CREATE INDEX IF NOT EXISTS idx_tenants_deleted_at ON identity.tenants(deleted_at) WHERE deleted_at IS NULL;
@@ -55,5 +67,5 @@ CREATE POLICY "Tenant Self Access" ON identity.tenants
 COMMENT ON TABLE identity.tenants IS 'Root multi-tenant entity: Schools, Organizations, or Individual accounts';
 COMMENT ON COLUMN identity.tenants.tenant_id IS 'INTERNAL PK: Int. Never expose to API';
 COMMENT ON COLUMN identity.tenants.tenant_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
-COMMENT ON COLUMN identity.tenants.tenant_config IS 'JSON config: {"branding": {"logo": url}, "limits": {"max_students": 100}}';
-COMMENT ON COLUMN identity.tenants.tenant_type IS 'Type of tenant: school (B2B), individual (B2C), enterprise (custom)';
+COMMENT ON COLUMN identity.tenants.tenant_type_id IS 'FK to identity.tenant_types: defines tenant classification and feature limits';
+COMMENT ON COLUMN identity.tenants.tenant_config IS 'JSON config: {"branding": {"logo": url}, "limits": {"max_students": 100}}. Must be object type';

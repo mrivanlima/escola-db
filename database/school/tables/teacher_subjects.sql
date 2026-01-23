@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS school.teacher_subjects (
     subject_id      INTEGER NOT NULL,
     
     -- 2. Business Data (Relationship-specific attributes)
-    proficiency_level   TEXT, -- "beginner", "intermediate", "expert"
+    proficiency_level_id SMALLINT, -- FK to school.proficiency_levels
     years_experience    INTEGER,
     is_primary_subject  BOOLEAN DEFAULT FALSE, -- Flag for teacher's main subject
     notes               TEXT,
@@ -33,11 +33,12 @@ CREATE TABLE IF NOT EXISTS school.teacher_subjects (
     
     CONSTRAINT fk_teacher_subjects_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
-
-    CONSTRAINT ck_teacher_subjects_proficiency CHECK (
-        proficiency_level IS NULL OR 
-        proficiency_level IN ('beginner', 'intermediate', 'expert')
-    ),
+    
+    CONSTRAINT fk_teacher_subjects_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_teacher_subjects_proficiency FOREIGN KEY (proficiency_level_id)
+        REFERENCES school.proficiency_levels (proficiency_level_id),
     
     CONSTRAINT ck_teacher_subjects_years CHECK (years_experience IS NULL OR years_experience >= 0)
 );
@@ -68,6 +69,6 @@ CREATE POLICY "Teacher Access" ON school.teacher_subjects
 COMMENT ON TABLE school.teacher_subjects IS 'Junction table linking teachers to subjects they can teach (Many-to-Many)';
 COMMENT ON COLUMN school.teacher_subjects.teacher_id IS 'FK to school.teachers';
 COMMENT ON COLUMN school.teacher_subjects.subject_id IS 'FK to school.subjects';
-COMMENT ON COLUMN school.teacher_subjects.proficiency_level IS 'Teacher proficiency: beginner, intermediate, expert';
+COMMENT ON COLUMN school.teacher_subjects.proficiency_level_id IS 'FK to school.proficiency_levels: teacher proficiency in this subject';
 COMMENT ON COLUMN school.teacher_subjects.years_experience IS 'Years of experience teaching this subject';
 COMMENT ON COLUMN school.teacher_subjects.is_primary_subject IS 'TRUE if this is the teacher main/primary subject';

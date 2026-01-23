@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS identity.app_users (
     -- 3. Business Data
     full_name       TEXT NOT NULL,
     email           TEXT NOT NULL,
-    user_role       TEXT NOT NULL, -- 'parent', 'teacher', 'admin', 'super_admin'
+    user_role_id    SMALLINT NOT NULL, -- FK to identity.user_roles
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     user_config     JSONB, -- Preferences: {"language": "pt-BR", "notifications": true}
     
@@ -37,15 +37,24 @@ CREATE TABLE IF NOT EXISTS identity.app_users (
     CONSTRAINT fk_app_users_tenant FOREIGN KEY (tenant_id) 
         REFERENCES identity.tenants (tenant_id),
     
+    CONSTRAINT fk_app_users_role FOREIGN KEY (user_role_id)
+        REFERENCES identity.user_roles (role_id),
+    
+    CONSTRAINT fk_app_users_created FOREIGN KEY (created_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_app_users_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
+    
     CONSTRAINT ck_app_users_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
-    CONSTRAINT ck_app_users_role CHECK (user_role IN ('parent', 'teacher', 'admin', 'super_admin'))
+    CONSTRAINT ck_app_users_user_config CHECK (user_config IS NULL OR jsonb_typeof(user_config) = 'object')
 );
 
 -- 6. Indexes
 CREATE INDEX IF NOT EXISTS idx_app_users_tenant ON identity.app_users(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_app_users_auth ON identity.app_users(auth_user_id);
 CREATE INDEX IF NOT EXISTS idx_app_users_email ON identity.app_users(email);
-CREATE INDEX IF NOT EXISTS idx_app_users_role ON identity.app_users(user_role);
+CREATE INDEX IF NOT EXISTS idx_app_users_role ON identity.app_users(user_role_id);
 CREATE INDEX IF NOT EXISTS idx_app_users_full_name_normalized ON identity.app_users(full_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_app_users_email_normalized ON identity.app_users(email_normalized);
 CREATE INDEX IF NOT EXISTS idx_app_users_deleted_at ON identity.app_users(deleted_at) WHERE deleted_at IS NULL;
@@ -71,5 +80,5 @@ COMMENT ON TABLE identity.app_users IS 'Application users: Parents, Teachers, Ad
 COMMENT ON COLUMN identity.app_users.user_id IS 'INTERNAL PK: Int. Never expose to API';
 COMMENT ON COLUMN identity.app_users.user_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
 COMMENT ON COLUMN identity.app_users.auth_user_id IS 'Foreign Key to Supabase auth.users.id';
-COMMENT ON COLUMN identity.app_users.user_role IS 'Role: parent (guardians), teacher, admin (school), super_admin (platform)';
-COMMENT ON COLUMN identity.app_users.user_config IS 'JSON preferences: {"language": "pt-BR", "theme": "dark", "notifications": true}';
+COMMENT ON COLUMN identity.app_users.user_role_id IS 'FK to identity.user_roles: defines user role and permissions';
+COMMENT ON COLUMN identity.app_users.user_config IS 'JSON preferences: {"language": "pt-BR", "theme": "dark", "notifications": true}. Must be object type';

@@ -1,124 +1,251 @@
-digraph database_schema {
-    rankdir=TB;
-    node [shape=record, style=filled, fillcolor=lightblue];
-    fontname="Arial";
-    fontsize=10;
+digraph escola_database {
+    graph [
+        rankdir=LR
+        bgcolor=white
+        fontname="Arial"
+        fontsize=12
+        pad=0.5
+        nodesep=0.7
+        ranksep=1.5
+    ]
     
-    // ========================================
+    node [
+        shape=record
+        fontname="Arial"
+        fontsize=10
+        margin=0.2
+        style=filled
+        fillcolor=lightblue
+    ]
+    
+    edge [
+        fontname="Arial"
+        fontsize=9
+        arrowsize=0.8
+    ]
+    
+    // ==========================================
     // IDENTITY SCHEMA
-    // ========================================
+    // ==========================================
     
     subgraph cluster_identity {
-        label="Identity Schema";
-        style=filled;
-        color=lightgrey;
+        label="Identity Schema"
+        style=filled
+        color=lightgrey
+        fillcolor="#f0f8ff"
         
-        tenants [label="{tenants|tenant_id (PK)\ltenant_uuid (UK)\ltenant_name\ltenant_name_normalized\ltenant_type\lis_active\l...audit fields\l}", fillcolor="#E8F4F8"];
+        tenants [label="{tenants|tenant_id: INTEGER PK\ltenant_uuid: UUID UK\ltenant_type_id: SMALLINT FK\ltenant_name: TEXT\ltenant_name_normalized: TEXT\ltenant_config: JSONB\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#4169E1" fontcolor=white]
         
-        app_users [label="{app_users|user_id (PK)\luser_uuid (UK)\ltenant_id (FK)\lauth_user_id (UK)\lfull_name\lfull_name_normalized\lemail\lemail_normalized\luser_role\lis_active\l...audit fields\l}", fillcolor="#E8F4F8"];
+        tenant_types [label="{tenant_types|type_id: SMALLINT PK\ltype_uuid: UUID UK\ltenant_id: INTEGER FK\ltype_code: TEXT UK\ltype_name: TEXT\ldescription: TEXT\lmax_students: INTEGER\lmax_teachers: INTEGER\lmax_storage_gb: INTEGER\lhas_analytics: BOOLEAN\lhas_api_access: BOOLEAN\lhas_white_label: BOOLEAN\lpricing_tier: TEXT\licon_name: TEXT\lcolor_code: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#87CEEB"]
+        
+        app_users [label="{app_users|user_id: INTEGER PK\luser_uuid: UUID UK\ltenant_id: INTEGER FK\lauth_user_id: UUID UK\lfull_name: TEXT\lfull_name_normalized: TEXT\lemail: TEXT\lemail_normalized: TEXT\luser_role_id: SMALLINT FK\lis_active: BOOLEAN\luser_config: JSONB\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#4169E1" fontcolor=white]
+        
+        user_roles [label="{user_roles|role_id: SMALLINT PK\lrole_uuid: UUID UK\ltenant_id: INTEGER FK\lrole_code: TEXT UK\lrole_name: TEXT\ldescription: TEXT\lpermission_level: INTEGER\lcan_manage_students: BOOLEAN\lcan_manage_content: BOOLEAN\lcan_manage_users: BOOLEAN\lcan_manage_tenant: BOOLEAN\licon_name: TEXT\lcolor_code: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#87CEEB"]
     }
     
-    // ========================================
+    // ==========================================
     // ASSETS SCHEMA
-    // ========================================
+    // ==========================================
     
     subgraph cluster_assets {
-        label="Assets Schema";
-        style=filled;
-        color=lightgrey;
+        label="Assets Schema"
+        style=filled
+        color=lightgrey
+        fillcolor="#fffacd"
         
-        media_files [label="{media_files|file_id (PK UUID)\ltenant_id (FK)\lstorage_path\loriginal_name\loriginal_name_normalized\lmime_type\lsize_bytes\lalt_text\lalt_text_normalized\lmetadata (JSONB)\l...audit fields\l}", fillcolor="#FFF4E6"];
+        media_files [label="{media_files|file_id: INTEGER PK\lfile_uuid: UUID UK\ltenant_id: INTEGER FK\lmime_type_id: SMALLINT FK\lstorage_path: TEXT\loriginal_name: TEXT\loriginal_name_normalized: TEXT\lsize_bytes: BIGINT\lalt_text: TEXT\lalt_text_normalized: TEXT\lmetadata: JSONB\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#FFD700" fontcolor=white]
+        
+        mime_types [label="{mime_types|mime_type_id: SMALLINT PK\lmime_type_uuid: UUID UK\ltenant_id: INTEGER FK\lcategory_id: SMALLINT FK\lmime_type_code: TEXT UK\lmime_type_name: TEXT\lfile_extension: TEXT\lmax_file_size_mb: INTEGER\licon_name: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#F0E68C"]
+        
+        media_categories [label="{media_categories|category_id: SMALLINT PK\lcategory_uuid: UUID UK\ltenant_id: INTEGER FK\lcategory_code: TEXT UK\lcategory_name: TEXT\ldescription: TEXT\ldefault_icon_name: TEXT\ldefault_max_size_mb: INTEGER\ldisplay_order: SMALLINT\l}" fillcolor="#F0E68C"]
     }
     
-    // ========================================
+    // ==========================================
     // SCHOOL SCHEMA
-    // ========================================
+    // ==========================================
     
     subgraph cluster_school {
-        label="School Schema";
-        style=filled;
-        color=lightgrey;
+        label="School Schema"
+        style=filled
+        color=lightgrey
+        fillcolor="#f0fff0"
         
-        students [label="{students|student_id (PK)\lstudent_uuid (UK)\ltenant_id (FK)\lnickname + normalized\lfirst_name + normalized\lmiddle_name + normalized\llast_name + normalized\lbirth_date\lavatar_config (JSONB)\lis_active\l...audit fields\l}", fillcolor="#E8F5E9"];
+        students [label="{students|student_id: INTEGER PK\lstudent_uuid: UUID UK\ltenant_id: INTEGER FK\luser_id: INTEGER FK\lnickname: TEXT\lnickname_normalized: TEXT\lfirst_name: TEXT\lfirst_name_normalized: TEXT\lmiddle_name: TEXT\lmiddle_name_normalized: TEXT\llast_name: TEXT\llast_name_normalized: TEXT\lbirth_date: DATE\lavatar_config: JSONB\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#228B22" fontcolor=white]
         
-        guardians [label="{guardians|guardian_id (PK)\lguardian_uuid (UK)\ltenant_id (FK)\luser_id (FK)\lphone_number\lrelationship\lis_primary\l...audit fields\l}", fillcolor="#E8F5E9"];
+        guardians [label="{guardians|guardian_id: INTEGER PK\lguardian_uuid: UUID UK\ltenant_id: INTEGER FK\luser_id: INTEGER FK\lphone_number: TEXT\lrelationship_type_id: SMALLINT FK\lis_primary: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#228B22" fontcolor=white]
         
-        student_guardians [label="{student_guardians|sg_id (PK)\lsg_uuid (UK)\ltenant_id (FK)\lstudent_id (FK)\lguardian_id (FK)\lrelationship_notes + normalized\lis_authorized_pickup\l...audit fields\l}", fillcolor="#E8F5E9"];
+        relationship_types [label="{relationship_types|relationship_type_id: SMALLINT PK\lrelationship_uuid: UUID UK\ltenant_id: INTEGER FK\lrelationship_code: TEXT UK\lrelationship_name: TEXT\ldescription: TEXT\lcan_authorize: BOOLEAN\lrequires_legal_proof: BOOLEAN\licon_name: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#90EE90"]
         
-        classes [label="{classes|class_id (PK)\lclass_uuid (UK)\ltenant_id (FK)\lclass_name + normalized\lgrade_level + normalized\lschool_year + normalized\lmax_students\lclass_config (JSONB)\lis_active\l...audit fields\l}", fillcolor="#E8F5E9"];
+        student_guardians [label="{student_guardians|student_guardian_id: INTEGER PK\lstudent_id: INTEGER FK\lguardian_id: INTEGER FK\ltenant_id: INTEGER FK\lrelationship_notes: TEXT\lrelationship_notes_normalized: TEXT\lis_authorized_pickup: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#32CD32" fontcolor=white]
         
-        teachers [label="{teachers|teacher_id (PK)\lteacher_uuid (UK)\ltenant_id (FK)\luser_id (FK)\lspecialization + normalized\lhire_date\lteacher_config (JSONB)\lis_active\l...audit fields\l}", fillcolor="#E8F5E9"];
+        classes [label="{classes|class_id: INTEGER PK\lclass_uuid: UUID UK\ltenant_id: INTEGER FK\lclass_name: TEXT\lclass_name_normalized: TEXT\lgrade_level_id: SMALLINT FK\lschool_year_id: SMALLINT FK\lmax_students: INTEGER\lclass_config: JSONB\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#228B22" fontcolor=white]
         
-        class_students [label="{class_students|cs_id (PK)\lcs_uuid (UK)\ltenant_id (FK)\lclass_id (FK)\lstudent_id (FK)\lenrollment_date\lstatus\l...audit fields\l}", fillcolor="#E8F5E9"];
+        grade_levels [label="{grade_levels|grade_level_id: SMALLINT PK\lgrade_uuid: UUID UK\ltenant_id: INTEGER FK\lgrade_code: TEXT UK\lgrade_name: TEXT\ldescription: TEXT\lage_range_min: INTEGER\lage_range_max: INTEGER\ldisplay_order: SMALLINT\licon_name: TEXT\lcolor_code: TEXT\l}" fillcolor="#90EE90"]
+        
+        school_years [label="{school_years|school_year_id: SMALLINT PK\lyear_uuid: UUID UK\ltenant_id: INTEGER FK\lyear_code: TEXT UK\lyear_name: TEXT\ldescription: TEXT\lstart_date: DATE\lend_date: DATE\lis_current: BOOLEAN\ldisplay_order: SMALLINT\l}" fillcolor="#90EE90"]
+        
+        teachers [label="{teachers|teacher_id: INTEGER PK\lteacher_uuid: UUID UK\ltenant_id: INTEGER FK\luser_id: INTEGER FK\lspecialization_id: INTEGER FK\lhire_date: DATE\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#228B22" fontcolor=white]
+        
+        specializations [label="{specializations|specialization_id: INTEGER PK\lspecialization_uuid: UUID UK\lspecialization_name: TEXT UK\ldescription: TEXT\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#90EE90"]
+        
+        certifications [label="{certifications|certification_id: INTEGER PK\lcertification_uuid: UUID UK\lcertification_name: TEXT UK\ldescription: TEXT\lissuing_organization: TEXT\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#90EE90"]
+        
+        teacher_certifications [label="{teacher_certifications|teacher_id: INTEGER FK\lcertification_id: INTEGER FK\lobtained_date: DATE\lexpiry_date: DATE\lcredential_number: TEXT\lnotes: TEXT\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#32CD32" fontcolor=white]
+        
+        subjects [label="{subjects|subject_id: INTEGER PK\lsubject_uuid: UUID UK\lsubject_name: TEXT UK\ldescription: TEXT\lgrade_level_id: SMALLINT FK\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#90EE90"]
+        
+        teacher_subjects [label="{teacher_subjects|teacher_id: INTEGER FK\lsubject_id: INTEGER FK\lproficiency_level_id: SMALLINT FK\lyears_experience: INTEGER\lis_primary_subject: BOOLEAN\lnotes: TEXT\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#32CD32" fontcolor=white]
+        
+        proficiency_levels [label="{proficiency_levels|proficiency_level_id: SMALLINT PK\lproficiency_uuid: UUID UK\ltenant_id: INTEGER FK\lproficiency_code: TEXT UK\lproficiency_name: TEXT\ldescription: TEXT\lminimum_years: INTEGER\licon_name: TEXT\lcolor_code: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#90EE90"]
+        
+        class_students [label="{class_students|class_student_id: INTEGER PK\lclass_id: INTEGER FK\lstudent_id: INTEGER FK\ltenant_id: INTEGER FK\lenrollment_date: DATE\lstatus_id: SMALLINT FK\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#32CD32" fontcolor=white]
+        
+        enrollment_statuses [label="{enrollment_statuses|status_id: SMALLINT PK\lstatus_uuid: UUID UK\ltenant_id: INTEGER FK\lstatus_code: TEXT UK\lstatus_name: TEXT\ldescription: TEXT\lallows_attendance: BOOLEAN\lallows_grading: BOOLEAN\lis_final_state: BOOLEAN\licon_name: TEXT\lcolor_code: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#90EE90"]
     }
     
-    // ========================================
+    // ==========================================
     // CONTENT SCHEMA
-    // ========================================
+    // ==========================================
     
     subgraph cluster_content {
-        label="Content Schema";
-        style=filled;
-        color=lightgrey;
+        label="Content Schema"
+        style=filled
+        color=lightgrey
+        fillcolor="#fff0f5"
         
-        modules [label="{modules|module_id (PK)\lmodule_uuid (UK)\lmodule_name + normalized\ldescription + normalized\lmodule_type\ldifficulty_level\lrecommended_age_min\lrecommended_age_max\ldisplay_order\lmodule_config (JSONB)\lis_published\l...audit fields\l}", fillcolor="#FCE4EC"];
+        modules [label="{modules|module_id: INTEGER PK\lmodule_uuid: UUID UK\lmodule_name: TEXT\lmodule_name_normalized: TEXT\ldescription: TEXT\ldescription_normalized: TEXT\lmodule_type_id: SMALLINT FK\ldifficulty_level: INTEGER\lrecommended_age_min: INTEGER\lrecommended_age_max: INTEGER\ldisplay_order: INTEGER\lthumbnail_url: TEXT\lmodule_config: JSONB\lis_published: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#FF1493" fontcolor=white]
         
-        activities [label="{activities|activity_id (PK)\lactivity_uuid (UK)\lmodule_id (FK)\lactivity_name + normalized\ldescription + normalized\lactivity_type\ldisplay_order\lestimated_duration\lpoints_reward\lactivity_data (JSONB)\lis_published\l...audit fields\l}", fillcolor="#FCE4EC"];
+        module_types [label="{module_types|module_type_id: SMALLINT PK\lmodule_type_uuid: UUID UK\ltenant_id: INTEGER FK\lmodule_type_code: TEXT UK\lmodule_type_name: TEXT\ldescription: TEXT\licon_name: TEXT\lcolor_code: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#FFB6C1"]
         
-        activity_resources [label="{activity_resources|resource_id (PK)\lresource_uuid (UK)\lactivity_id (FK)\lresource_name + normalized\lresource_type\lmedia_file_id (FK UUID)\ldisplay_order\lis_required\lusage_context\lresource_config (JSONB)\lis_published\l...audit fields\l}", fillcolor="#FCE4EC"];
+        activities [label="{activities|activity_id: INTEGER PK\lactivity_uuid: UUID UK\lmodule_id: INTEGER FK\lactivity_name: TEXT\lactivity_name_normalized: TEXT\ldescription: TEXT\ldescription_normalized: TEXT\lactivity_type_id: SMALLINT FK\ldisplay_order: INTEGER\lestimated_duration: INTEGER\lpoints_reward: INTEGER\lactivity_data: JSONB\lthumbnail_url: TEXT\lis_published: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#FF1493" fontcolor=white]
+        
+        activity_types [label="{activity_types|activity_type_id: SMALLINT PK\lactivity_type_uuid: UUID UK\ltenant_id: INTEGER FK\lactivity_type_code: TEXT UK\lactivity_type_name: TEXT\ldescription: TEXT\licon_name: TEXT\ldefault_points: INTEGER\lrequires_interaction: BOOLEAN\ldisplay_order: SMALLINT\l}" fillcolor="#FFB6C1"]
+        
+        activity_resources [label="{activity_resources|resource_id: INTEGER PK\lresource_uuid: UUID UK\lactivity_id: INTEGER FK\lresource_name: TEXT\lresource_name_normalized: TEXT\lresource_type_id: SMALLINT FK\lmedia_file_id: INTEGER FK\ldisplay_order: INTEGER\lis_required: BOOLEAN\lusage_context_id: SMALLINT FK\lresource_config: JSONB\lis_published: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#FF1493" fontcolor=white]
+        
+        resource_types [label="{resource_types|resource_type_id: SMALLINT PK\lresource_type_uuid: UUID UK\ltenant_id: INTEGER FK\lresource_type_code: TEXT UK\lresource_type_name: TEXT\ldescription: TEXT\lmime_types: JSONB\lmax_file_size_mb: INTEGER\licon_name: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#FFB6C1"]
+        
+        usage_contexts [label="{usage_contexts|usage_context_id: SMALLINT PK\lusage_context_uuid: UUID UK\ltenant_id: INTEGER FK\lcontext_code: TEXT UK\lcontext_name: TEXT\ldescription: TEXT\licon_name: TEXT\ldisplay_order: SMALLINT\l}" fillcolor="#FFB6C1"]
     }
     
-    // ========================================
+    // ==========================================
     // GAME SCHEMA
-    // ========================================
+    // ==========================================
     
     subgraph cluster_game {
-        label="Game Schema";
-        style=filled;
-        color=lightgrey;
+        label="Game Schema"
+        style=filled
+        color=lightgrey
+        fillcolor="#ffe4e1"
         
-        student_progress [label="{student_progress|progress_id (PK)\lprogress_uuid (UK)\ltenant_id (FK)\lstudent_id (FK)\lactivity_id (FK)\lstatus\lscore\ltime_spent_seconds\lattempts_count\lcompletion_date\lprogress_data (JSONB)\l...audit fields\l}", fillcolor="#F3E5F5"];
+        student_progress [label="{student_progress|progress_id: BIGINT PK\lprogress_uuid: UUID UK\lstudent_id: INTEGER FK\lactivity_id: INTEGER FK\ltenant_id: INTEGER FK\lstatus_id: SMALLINT FK\lscore: INTEGER\lattempts_count: INTEGER\ltime_spent_seconds: INTEGER\lprogress_data: JSONB\lcompletion_date: TIMESTAMPTZ\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#DC143C" fontcolor=white]
         
-        badges [label="{badges|badge_id (PK)\lbadge_uuid (UK)\lbadge_name + normalized\ldescription + normalized\lbadge_type\lrarity\lpoints_value\lunlock_criteria (JSONB)\ldisplay_order\lis_active\l...audit fields\l}", fillcolor="#F3E5F5"];
+        progress_statuses [label="{progress_statuses|status_id: SMALLINT PK\lstatus_uuid: UUID UK\ltenant_id: INTEGER FK\lstatus_code: TEXT UK\lstatus_name: TEXT\ldescription: TEXT\licon_name: TEXT\lcolor_code: TEXT\lis_final_state: BOOLEAN\ldisplay_order: SMALLINT\l}" fillcolor="#FFB6C1"]
         
-        student_badges [label="{student_badges|sb_id (PK)\lsb_uuid (UK)\ltenant_id (FK)\lstudent_id (FK)\lbadge_id (FK)\learned_at\lprogress_id (FK)\l...audit fields\l}", fillcolor="#F3E5F5"];
+        badges [label="{badges|badge_id: INTEGER PK\lbadge_uuid: UUID UK\lbadge_name: TEXT\lbadge_name_normalized: TEXT\ldescription: TEXT\ldescription_normalized: TEXT\lbadge_type_id: SMALLINT FK\licon_url: TEXT\lrarity_id: SMALLINT FK\lpoints_value: INTEGER\lunlock_criteria: JSONB\ldisplay_order: INTEGER\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#DC143C" fontcolor=white]
+        
+        badge_types [label="{badge_types|badge_type_id: SMALLINT PK\lbadge_type_uuid: UUID UK\lbadge_type_code: TEXT UK\lbadge_type_name: TEXT\ldescription: TEXT\licon_name: TEXT\ldisplay_order: INTEGER\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#FFB6C1"]
+        
+        badge_rarities [label="{badge_rarities|rarity_id: SMALLINT PK\lrarity_uuid: UUID UK\lrarity_code: TEXT UK\lrarity_name: TEXT\ldescription: TEXT\lcolor_code: TEXT\lpoints_multiplier: NUMERIC\ldisplay_order: INTEGER\lis_active: BOOLEAN\lcreated_at: TIMESTAMPTZ\lcreated_by: INTEGER FK\lupdated_at: TIMESTAMPTZ\lupdated_by: INTEGER FK\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#FFB6C1"]
+        
+        student_badges [label="{student_badges|student_badge_id: INTEGER PK\lstudent_id: INTEGER FK\lbadge_id: INTEGER FK\ltenant_id: INTEGER FK\learned_at: DATE\learn_metadata: JSONB\lcreated_at: TIMESTAMPTZ\ldeleted_at: TIMESTAMPTZ\l}" fillcolor="#FFB6C1"]
     }
     
-    // ========================================
+    // ==========================================
     // RELATIONSHIPS
-    // ========================================
+    // ==========================================
     
     // Identity relationships
-    app_users -> tenants [label="tenant_id"];
+    tenants -> tenant_types [label="tenant_type_id"]
+    tenants -> app_users [label="1:N"]
+    tenants -> user_roles [label="1:N"]
+    app_users -> user_roles [label="user_role_id"]
+    app_users -> app_users [label="created_by\nupdated_by" style=dashed]
     
     // Assets relationships
-    media_files -> tenants [label="tenant_id"];
+    tenants -> media_files [label="1:N"]
+    tenants -> mime_types [label="1:N"]
+    tenants -> media_categories [label="1:N"]
+    media_files -> mime_types [label="mime_type_id"]
+    mime_types -> media_categories [label="category_id"]
+    media_files -> app_users [label="created_by\lupdated_by" style=dashed]
     
     // School relationships
-    students -> tenants [label="tenant_id"];
-    guardians -> tenants [label="tenant_id"];
-    guardians -> app_users [label="user_id"];
-    student_guardians -> tenants [label="tenant_id"];
-    student_guardians -> students [label="student_id"];
-    student_guardians -> guardians [label="guardian_id"];
-    classes -> tenants [label="tenant_id"];
-    teachers -> tenants [label="tenant_id"];
-    teachers -> app_users [label="user_id"];
-    class_students -> tenants [label="tenant_id"];
-    class_students -> classes [label="class_id"];
-    class_students -> students [label="student_id"];
+    tenants -> students [label="1:N"]
+    tenants -> guardians [label="1:N"]
+    tenants -> classes [label="1:N"]
+    tenants -> teachers [label="1:N"]
+    tenants -> grade_levels [label="1:N"]
+    tenants -> school_years [label="1:N"]
+    tenants -> relationship_types [label="1:N"]
+    tenants -> enrollment_statuses [label="1:N"]
+    tenants -> proficiency_levels [label="1:N"]
+    
+    students -> app_users [label="created_by\lupdated_by" style=dashed]
+    students -> app_users [label="user_id (optional)" style=dotted]
+    guardians -> app_users [label="user_id"]
+    guardians -> relationship_types [label="relationship_type_id"]
+    guardians -> app_users [label="created_by\lupdated_by" style=dashed]
+    
+    students -> student_guardians [label="1:N"]
+    guardians -> student_guardians [label="1:N"]
+    student_guardians -> app_users [label="created_by\lupdated_by" style=dashed]
+    
+    students -> class_students [label="1:N"]
+    classes -> class_students [label="1:N"]
+    classes -> grade_levels [label="grade_level_id"]
+    classes -> school_years [label="school_year_id"]
+    class_students -> enrollment_statuses [label="status_id"]
+    classes -> app_users [label="created_by\lupdated_by" style=dashed]
+    class_students -> app_users [label="created_by\lupdated_by" style=dashed]
+    
+    students -> student_progress [label="1:N"]
+    students -> student_badges [label="1:N"]
+    
+    teachers -> app_users [label="user_id"]
+    teachers -> specializations [label="specialization_id"]
+    teachers -> app_users [label="created_by\lupdated_by" style=dashed]
+    specializations -> app_users [label="created_by\lupdated_by" style=dashed]
+    certifications -> app_users [label="created_by\lupdated_by" style=dashed]
+    
+    teachers -> teacher_certifications [label="1:N"]
+    certifications -> teacher_certifications [label="1:N"]
+    teacher_certifications -> app_users [label="created_by\lupdated_by" style=dashed]
+    
+    teachers -> teacher_subjects [label="1:N"]
+    subjects -> teacher_subjects [label="1:N"]
+    subjects -> grade_levels [label="grade_level_id"]
+    teacher_subjects -> proficiency_levels [label="proficiency_level_id"]
+    subjects -> app_users [label="created_by\lupdated_by" style=dashed]
+    teacher_subjects -> app_users [label="created_by\lupdated_by" style=dashed]
     
     // Content relationships
-    activities -> modules [label="module_id"];
-    activity_resources -> activities [label="activity_id"];
-    activity_resources -> media_files [label="media_file_id", style=dashed, color=blue];
+    tenants -> module_types [label="1:N"]
+    tenants -> activity_types [label="1:N"]
+    tenants -> resource_types [label="1:N"]
+    tenants -> usage_contexts [label="1:N"]
+    
+    modules -> activities [label="1:N"]
+    modules -> module_types [label="module_type_id"]
+    modules -> app_users [label="created_by\lupdated_by" style=dashed]
+    activities -> activity_resources [label="1:N"]
+    activities -> activity_types [label="activity_type_id"]
+    activities -> student_progress [label="1:N"]
+    activities -> app_users [label="created_by\lupdated_by" style=dashed]
+    activity_resources -> media_files [label="media_file_id"]
+    activity_resources -> resource_types [label="resource_type_id"]
+    activity_resources -> usage_contexts [label="usage_context_id"]
+    activity_resources -> app_users [label="created_by\lupdated_by" style=dashed]
     
     // Game relationships
-    student_progress -> tenants [label="tenant_id"];
-    student_progress -> students [label="student_id"];
-    student_progress -> activities [label="activity_id"];
-    student_badges -> tenants [label="tenant_id"];
-    student_badges -> students [label="student_id"];
-    student_badges -> badges [label="badge_id"];
-    student_badges -> student_progress [label="progress_id", style=dashed];
+    tenants -> student_progress [label="1:N"]
+    tenants -> progress_statuses [label="1:N"]
+    student_progress -> progress_statuses [label="status_id"]
+    student_progress -> app_users [label="created_by\lupdated_by" style=dashed]
+    badges -> student_badges [label="1:N"]
+    badges -> badge_types [label="badge_type_id"]
+    badges -> badge_rarities [label="rarity_id"]
+    badge_types -> app_users [label="created_by\lupdated_by" style=dashed]
+    badge_rarities -> app_users [label="created_by\lupdated_by" style=dashed]
+    badges -> app_users [label="created_by\lupdated_by" style=dashed]
 }

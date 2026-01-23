@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS game.student_progress (
     activity_id     INTEGER NOT NULL,
     
     -- 2. Business Data
-    status          TEXT NOT NULL, -- 'started', 'in_progress', 'completed', 'abandoned'
+    status_id       SMALLINT NOT NULL, -- FK to game.progress_statuses
     score           INTEGER, -- Score or percentage (0-100)
     time_spent_seconds INTEGER, -- Time spent on activity
     attempts_count  INTEGER NOT NULL DEFAULT 1,
@@ -42,18 +42,23 @@ CREATE TABLE IF NOT EXISTS game.student_progress (
     
     CONSTRAINT fk_student_progress_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
-
-    CONSTRAINT ck_student_progress_status CHECK (status IN ('started', 'in_progress', 'completed', 'abandoned')),
+    
+    CONSTRAINT fk_student_progress_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_student_progress_status FOREIGN KEY (status_id)
+        REFERENCES game.progress_statuses (status_id),
     CONSTRAINT ck_student_progress_score CHECK (score IS NULL OR (score >= 0 AND score <= 100)),
     CONSTRAINT ck_student_progress_time CHECK (time_spent_seconds IS NULL OR time_spent_seconds >= 0),
-    CONSTRAINT ck_student_progress_attempts CHECK (attempts_count > 0)
+    CONSTRAINT ck_student_progress_attempts CHECK (attempts_count > 0),
+    CONSTRAINT ck_student_progress_progress_data CHECK (progress_data IS NULL OR jsonb_typeof(progress_data) = 'object')
 );
 
 -- 5. Indexes
 CREATE INDEX idx_student_progress_tenant ON game.student_progress(tenant_id);
 CREATE INDEX idx_student_progress_student ON game.student_progress(student_id);
 CREATE INDEX idx_student_progress_activity ON game.student_progress(activity_id);
-CREATE INDEX idx_student_progress_status ON game.student_progress(status);
+CREATE INDEX idx_student_progress_status ON game.student_progress(status_id);
 CREATE INDEX idx_student_progress_completion ON game.student_progress(completion_date);
 CREATE INDEX idx_student_progress_deleted_at ON game.student_progress(deleted_at) WHERE deleted_at IS NULL;
 
@@ -72,6 +77,6 @@ CREATE POLICY "Tenant Isolation" ON game.student_progress
 COMMENT ON TABLE game.student_progress IS 'High-volume table: tracks student progress through activities';
 COMMENT ON COLUMN game.student_progress.progress_id IS 'INTERNAL PK: BIGINT for high volume. Never expose to API';
 COMMENT ON COLUMN game.student_progress.progress_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
-COMMENT ON COLUMN game.student_progress.status IS 'Progress status: started, in_progress, completed, abandoned';
-COMMENT ON COLUMN game.student_progress.progress_data IS 'JSON: Activity-specific tracking (answers, mistakes, paths taken)';
+COMMENT ON COLUMN game.student_progress.status_id IS 'FK to game.progress_statuses: current progress state';
+COMMENT ON COLUMN game.student_progress.progress_data IS 'JSON: Activity-specific tracking (answers, mistakes, paths taken). Must be object type';
 COMMENT ON COLUMN game.student_progress.score IS 'Score or percentage (0-100). NULL if not applicable';

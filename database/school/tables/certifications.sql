@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS school.certifications (
     
     CONSTRAINT fk_certifications_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_certifications_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_certifications_name CHECK (LENGTH(certification_name) >= 2)
 );

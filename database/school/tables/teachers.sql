@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS school.teachers (
         REFERENCES school.specializations (specialization_id),
     
     CONSTRAINT fk_teachers_created FOREIGN KEY (created_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_teachers_updated FOREIGN KEY (updated_by)
         REFERENCES identity.app_users (user_id)
 );
 

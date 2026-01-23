@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS school.class_students (
     
     -- 2. Business Data
     enrollment_date     DATE NOT NULL DEFAULT CURRENT_DATE,
-    status              TEXT NOT NULL DEFAULT 'active', -- 'active', 'inactive', 'transferred'
+    status_id           SMALLINT NOT NULL, -- FK to school.enrollment_statuses (default 'active')
     
     -- 3. Full Audit Trail
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -38,14 +38,18 @@ CREATE TABLE IF NOT EXISTS school.class_students (
     CONSTRAINT fk_class_students_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
     
-    CONSTRAINT ck_class_students_status CHECK (status IN ('active', 'inactive', 'transferred'))
+    CONSTRAINT fk_class_students_updated FOREIGN KEY (updated_by)
+        REFERENCES identity.app_users (user_id),
+    
+    CONSTRAINT fk_class_students_status FOREIGN KEY (status_id)
+        REFERENCES school.enrollment_statuses (status_id)
 );
 
 -- 5. Indexes
 CREATE INDEX idx_class_students_tenant ON school.class_students(tenant_id);
 CREATE INDEX idx_class_students_class ON school.class_students(class_id);
 CREATE INDEX idx_class_students_student ON school.class_students(student_id);
-CREATE INDEX idx_class_students_status ON school.class_students(status);
+CREATE INDEX idx_class_students_status ON school.class_students(status_id);
 CREATE INDEX idx_class_students_deleted_at ON school.class_students(deleted_at) WHERE deleted_at IS NULL;
 
 -- 6. Trigger for Updated At
@@ -61,5 +65,5 @@ CREATE POLICY "Tenant Isolation" ON school.class_students
 
 -- 8. Metadata (Documentation)
 COMMENT ON TABLE school.class_students IS 'Many-to-Many: Links students to their classes';
-COMMENT ON COLUMN school.class_students.status IS 'Enrollment status: active, inactive, transferred';
+COMMENT ON COLUMN school.class_students.status_id IS 'FK to school.enrollment_statuses: current enrollment status';
 COMMENT ON COLUMN school.class_students.enrollment_date IS 'Date student was enrolled in this class';

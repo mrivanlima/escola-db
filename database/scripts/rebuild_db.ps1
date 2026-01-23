@@ -69,13 +69,15 @@ DROP SCHEMA IF EXISTS identity CASCADE;"
 
     # Step 2: Recreate database structure
     Write-Host "Step 2: Recreating database structure..." -ForegroundColor Magenta
+    Push-Location "$PSScriptRoot\.."
     & "C:\Program Files\PostgreSQL\17\bin\psql.exe" `
         -h $Server `
         -p $Port `
         -U $Username `
         -d $Database `
-        -f "$PSScriptRoot\..\build_all.sql" `
+        -f "build_all.sql" `
         -v ON_ERROR_STOP=1
+    Pop-Location
     
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to recreate database structure"
@@ -85,13 +87,15 @@ DROP SCHEMA IF EXISTS identity CASCADE;"
 
     # Step 3: Seed data
     Write-Host "Step 3: Seeding data..." -ForegroundColor Magenta
+    Push-Location "$PSScriptRoot\.."
     & "C:\Program Files\PostgreSQL\17\bin\psql.exe" `
         -h $Server `
         -p $Port `
         -U $Username `
         -d $Database `
-        -f "$PSScriptRoot\..\seed_data.sql" `
+        -f "seed_data.sql" `
         -v ON_ERROR_STOP=1
+    Pop-Location
     
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to seed data"
