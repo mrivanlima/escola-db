@@ -73,9 +73,34 @@
 - **Validation:** Use `FluentValidation` in Application layer.
 - **Tenant Awareness:** Every service must inject `ICurrentUserService` to filter data by Tenant.
 
+### 4.3. API & Communication Standards (Strict JSON Contract)
+All HTTP endpoints MUST return a standardized JSON envelope using the `ApiResponse<T>` wrapper. Raw objects are strictly forbidden.
+
+**Standard JSON Structure:**
+```json
+{
+  "success": true,        // boolean: true if operation succeeded
+  "message": null,        // string: Optional human-readable message
+  "data": { ... },        // T: The actual payload (Object, List, or null)
+  "errors": null          // List<string>: Detailed error messages (only when success=false)
+}
+
+**Implementation Rules:**
+- **Success (200 OK):** Return `ApiResponse<T>.SuccessResult(data)`.
+- **Created (201 Created):** Return `ApiResponse<T>.SuccessResult(data)` inside the Created envelope.
+- **Validation Failure (400 Bad Request):** Return `ApiResponse<T>.FailureResult("Validation Failed", errors_list)`.
+- **Resource Not Found (404 Not Found):** Return `ApiResponse<T>.FailureResult("Resource not found")`.
+- **System Error (500 Internal Server Error):** Return `ApiResponse<T>.FailureResult("An unexpected error occurred")`.
+
+**Controller Constraints:**
+- All Controllers must inherit from `ControllerBase`.
+- Controllers must **not** contain business logic; they strictly delegate to Handlers/Services.
+- Controllers are responsible for mapping the Handler result to the correct `ApiResponse` status code.
+
 ---
 
 ## 5. Frontend Guidelines (Flutter)
 - **State:** Riverpod.
 - **IDs:** Only use UUIDs.
 - **Models:** Freezed & JsonSerializable.
+- **API Client:** Must expect `ApiResponse<T>` structure for all requests.

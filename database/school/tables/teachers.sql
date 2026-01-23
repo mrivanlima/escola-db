@@ -12,13 +12,11 @@ CREATE TABLE IF NOT EXISTS school.teachers (
     user_id         INTEGER NOT NULL, -- Links to identity.app_users
     
     -- 2. Business Data
-    specialization  TEXT, -- "Early Childhood Education", "Mathematics", etc.
-    hire_date       DATE,
-    teacher_config  JSONB, -- {"certifications": [...], "subjects": [...]}
-    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+    specialization_id   INTEGER, -- FK to school.specializations
+    hire_date           DATE,
+    is_active           BOOLEAN NOT NULL DEFAULT TRUE,
     
-    -- 2.1. Normalized columns for search
-    specialization_normalized   TEXT GENERATED ALWAYS AS (LOWER(immutable_unaccent(COALESCE(specialization, '')))) STORED,
+    -- 2.1. Normalized columns for search (removed specialization_normalized - now in lookup table)
     
     -- 3. Full Audit Trail
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -38,6 +36,9 @@ CREATE TABLE IF NOT EXISTS school.teachers (
     CONSTRAINT fk_teachers_user FOREIGN KEY (user_id)
         REFERENCES identity.app_users (user_id),
     
+    CONSTRAINT fk_teachers_specialization FOREIGN KEY (specialization_id)
+        REFERENCES school.specializations (specialization_id),
+    
     CONSTRAINT fk_teachers_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id)
 );
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS school.teachers (
 -- 5. Indexes
 CREATE INDEX IF NOT EXISTS idx_teachers_tenant ON school.teachers(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_teachers_user ON school.teachers(user_id);
-CREATE INDEX IF NOT EXISTS idx_teachers_specialization_normalized ON school.teachers(specialization_normalized);
+CREATE INDEX IF NOT EXISTS idx_teachers_specialization ON school.teachers(specialization_id);
 CREATE INDEX IF NOT EXISTS idx_teachers_deleted_at ON school.teachers(deleted_at) WHERE deleted_at IS NULL;
 
 -- 6. Trigger for Updated At
@@ -60,8 +61,8 @@ CREATE POLICY "Tenant Isolation" ON school.teachers
     USING (tenant_id = current_setting('app.current_tenant', TRUE)::INTEGER);
 
 -- 8. Metadata (Documentation)
-COMMENT ON TABLE school.teachers IS 'Teachers linked to app_users (user_role = teacher)';
+COMMENT ON TABLE school.teachers IS 'Teachers linked to app_users (user_role = teacher). Certifications and subjects are in junction tables.';
 COMMENT ON COLUMN school.teachers.teacher_id IS 'INTERNAL PK: Int. Never expose to API';
 COMMENT ON COLUMN school.teachers.teacher_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
 COMMENT ON COLUMN school.teachers.user_id IS 'FK to identity.app_users (1:1 relationship)';
-COMMENT ON COLUMN school.teachers.teacher_config IS 'JSON: {"certifications": ["Early Ed"], "subjects": ["Math", "Reading"]}';
+COMMENT ON COLUMN school.teachers.specialization_id IS 'FK to school.specializations lookup table';

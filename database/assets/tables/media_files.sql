@@ -5,14 +5,15 @@
 -- =====================================================
 
 CREATE TABLE IF NOT EXISTS assets.media_files (
-    -- 1. IDs
-    file_id         UUID NOT NULL DEFAULT gen_random_uuid(), -- Public ID (used in App)
+    -- 1. IDs Híbridos
+    file_id         INTEGER GENERATED ALWAYS AS IDENTITY,
+    file_uuid       UUID NOT NULL DEFAULT gen_random_uuid(),
     tenant_id       INTEGER NOT NULL, -- Tenant isolation (School A cannot see School B's files)
     
     -- 2. Storage & File Info
     storage_path    TEXT NOT NULL, -- Bucket path (e.g., "tenants/123/math/img_01.png")
     original_name   TEXT NOT NULL, -- Original upload filename
-    mime_type       TEXT NOT NULL, -- 'image/jpeg', 'audio/mp3', 'video/mp4'
+    mime_type_id    SMALLINT NOT NULL, -- FK to assets.mime_types
     size_bytes      BIGINT,        -- For quota control
     
     -- 3. Accessibility & Metadata
@@ -32,9 +33,13 @@ CREATE TABLE IF NOT EXISTS assets.media_files (
 
     -- 5. Named Constraints (Bottom)
     CONSTRAINT pk_media_files PRIMARY KEY (file_id),
+    CONSTRAINT uq_media_files_uuid UNIQUE (file_uuid),
     
     CONSTRAINT fk_media_files_tenant FOREIGN KEY (tenant_id) 
         REFERENCES identity.tenants (tenant_id),
+    
+    CONSTRAINT fk_media_files_mime_type FOREIGN KEY (mime_type_id)
+        REFERENCES assets.mime_types (mime_type_id),
     
     CONSTRAINT fk_media_files_created FOREIGN KEY (created_by)
         REFERENCES identity.app_users (user_id),
@@ -43,13 +48,12 @@ CREATE TABLE IF NOT EXISTS assets.media_files (
         REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_media_files_original_name CHECK (LENGTH(original_name) >= 1),
-    CONSTRAINT ck_media_files_mime_type CHECK (LENGTH(mime_type) >= 3),
     CONSTRAINT ck_media_files_size CHECK (size_bytes IS NULL OR size_bytes > 0)
 );
 
 -- 6. Indexes
 CREATE INDEX IF NOT EXISTS idx_media_files_tenant ON assets.media_files(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_media_files_mime ON assets.media_files(mime_type);
+CREATE INDEX IF NOT EXISTS idx_media_files_mime_type ON assets.media_files(mime_type_id);
 CREATE INDEX IF NOT EXISTS idx_media_files_storage_path ON assets.media_files(storage_path);
 CREATE INDEX IF NOT EXISTS idx_media_files_original_name_normalized ON assets.media_files(original_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_media_files_alt_text_normalized ON assets.media_files(alt_text_normalized);
@@ -69,7 +73,9 @@ CREATE POLICY "Tenant Isolation" ON assets.media_files
 
 -- 9. Metadata (Documentation)
 COMMENT ON TABLE assets.media_files IS 'Central registry for all uploaded media (Images, Audio, PDF). Stores metadata, not the binary.';
-COMMENT ON COLUMN assets.media_files.file_id IS 'EXTERNAL ID: UUID exposed to Frontend/API (no internal integer ID)';
+COMMENT ON COLUMN assets.media_files.file_id IS 'INTERNAL PK: Int. Never expose to API';
+COMMENT ON COLUMN assets.media_files.file_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
+COMMENT ON COLUMN assets.media_files.mime_type_id IS 'FK to assets.mime_types lookup table';
 COMMENT ON COLUMN assets.media_files.storage_path IS 'Relative path in the Supabase Storage Bucket';
 COMMENT ON COLUMN assets.media_files.metadata IS 'JSONB for extra data: {"width": 800, "height": 600, "duration_sec": 15, "tags": ["math", "easy"]}';
 COMMENT ON COLUMN assets.media_files.alt_text IS 'Accessibility text for screen readers and SEO';

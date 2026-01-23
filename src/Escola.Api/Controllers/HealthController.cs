@@ -1,6 +1,7 @@
-using Escola.Infrastructure.Persistence;
+using Escola.Api.Common;
+using Escola.Application.UseCases.Health.CheckDatabase;
+using Escola.Application.UseCases.Health.GetHealth;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Api.Controllers;
 
@@ -8,12 +9,17 @@ namespace Escola.Api.Controllers;
 [Route("api/[controller]")]
 public class HealthController : ControllerBase
 {
-    private readonly EscolaDbContext _context;
+    private readonly IGetHealthHandler _getHealthHandler;
+    private readonly ICheckDatabaseHandler _checkDatabaseHandler;
     private readonly ILogger<HealthController> _logger;
 
-    public HealthController(EscolaDbContext context, ILogger<HealthController> logger)
+    public HealthController(
+        IGetHealthHandler getHealthHandler,
+        ICheckDatabaseHandler checkDatabaseHandler,
+        ILogger<HealthController> logger)
     {
-        _context = context;
+        _getHealthHandler = getHealthHandler;
+        _checkDatabaseHandler = checkDatabaseHandler;
         _logger = logger;
     }
 
@@ -21,55 +27,39 @@ public class HealthController : ControllerBase
     /// Basic health check endpoint.
     /// </summary>
     [HttpGet]
-    public IActionResult Get()
+    public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        return Ok(new
-        {
-            status = "healthy",
-            timestamp = DateTimeOffset.UtcNow,
-            service = "Escola Platform API",
-            version = "1.0.0"
-        });
+        var request = new GetHealthRequest();
+        var response = await _getHealthHandler.Handle(request, cancellationToken);
+
+        return Ok(ApiResponse<GetHealthResponse>.SuccessResult(response, "Service is healthy"));
     }
 
     /// <summary>
     /// Database connectivity check.
     /// </summary>
     [HttpGet("database")]
-    public async Task<IActionResult> CheckDatabase()
+    public async Task<IActionResult> CheckDatabase(CancellationToken cancellationToken)
     {
         try
         {
-            // Try to connect to the database
-            var canConnect = await _context.Database.CanConnectAsync();
-            
-            if (canConnect)
+            var request = new CheckDatabaseRequest();
+            var response = await _checkDatabaseHandler.Handle(request, cancellationToken);
+
+            if (response.IsConnected)
             {
-                return Ok(new
-                {
-                    status = "healthy",
-                    database = "connected",
-                    timestamp = DateTimeOffset.UtcNow
-                });
+                return Ok(ApiResponse<CheckDatabaseResponse>.SuccessResult(response, "Database is connected"));
             }
 
-            return StatusCode(503, new
-            {
-                status = "unhealthy",
-                database = "cannot connect",
-                timestamp = DateTimeOffset.UtcNow
-            });
+            return StatusCode(503, ApiResponse<CheckDatabaseResponse>.FailureResult(
+                "Database connection failed"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Database health check failed");
-            return StatusCode(503, new
-            {
-                status = "unhealthy",
-                database = "error",
-                error = ex.Message,
-                timestamp = DateTimeOffset.UtcNow
-            });
+            return StatusCode(503, ApiResponse<object>.FailureResult(
+                "Database health check error",
+                new List<string> { ex.Message }));
         }
     }
 }

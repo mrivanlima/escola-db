@@ -1,6 +1,6 @@
-using Escola.Infrastructure.Persistence;
+using Escola.Api.Common;
+using Escola.Application.UseCases.Tenants.GetTenants;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Api.Controllers;
 
@@ -11,12 +11,12 @@ namespace Escola.Api.Controllers;
 [Route("api/[controller]")]
 public class TenantsController : ControllerBase
 {
-    private readonly EscolaDbContext _context;
+    private readonly IGetTenantsHandler _getTenantsHandler;
     private readonly ILogger<TenantsController> _logger;
 
-    public TenantsController(EscolaDbContext context, ILogger<TenantsController> logger)
+    public TenantsController(IGetTenantsHandler getTenantsHandler, ILogger<TenantsController> logger)
     {
-        _context = context;
+        _getTenantsHandler = getTenantsHandler;
         _logger = logger;
     }
 
@@ -29,40 +29,19 @@ public class TenantsController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Fetching all tenants");
+            var request = new GetTenantsRequest();
+            var response = await _getTenantsHandler.Handle(request, cancellationToken);
 
-            var tenants = await _context.Tenants
-                .OrderBy(t => t.TenantName)
-                .Select(t => new
-                {
-                    t.TenantId,
-                    t.TenantUuid,
-                    t.TenantName,
-                    t.TenantType,
-                    t.IsActive,
-                    t.CreatedAt,
-                    t.UpdatedAt
-                })
-                .ToListAsync(cancellationToken);
-
-            _logger.LogInformation("Found {Count} tenants", tenants.Count);
-
-            return Ok(new
-            {
-                success = true,
-                count = tenants.Count,
-                data = tenants
-            });
+            return Ok(ApiResponse<GetTenantsResponse>.SuccessResult(
+                response,
+                $"Retrieved {response.Tenants.Count} tenants"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching tenants");
-            return StatusCode(500, new
-            {
-                success = false,
-                error = "An error occurred while fetching tenants",
-                detail = ex.Message
-            });
+            return StatusCode(500, ApiResponse<object>.FailureResult(
+                "An error occurred while fetching tenants",
+                new List<string> { ex.Message }));
         }
     }
 }

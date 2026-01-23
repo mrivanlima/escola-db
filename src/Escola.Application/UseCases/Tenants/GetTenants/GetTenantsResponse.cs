@@ -13,7 +13,6 @@ public class GetTenantsResponse
 /// </summary>
 public class TenantDto
 {
-    public int TenantId { get; set; }
     public Guid TenantUuid { get; set; }
     public string TenantName { get; set; } = string.Empty;
     public string? TenantType { get; set; }

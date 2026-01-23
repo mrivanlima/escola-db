@@ -32,7 +32,8 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
 
         builder.Property(s => s.NicknameNormalized)
             .HasColumnName("nickname_normalized")
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(s => s.FirstName)
             .HasColumnName("first_name")
@@ -42,7 +43,8 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
         builder.Property(s => s.FirstNameNormalized)
             .HasColumnName("first_name_normalized")
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(s => s.MiddleName)
             .HasColumnName("middle_name")
@@ -50,7 +52,8 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
 
         builder.Property(s => s.MiddleNameNormalized)
             .HasColumnName("middle_name_normalized")
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(s => s.LastName)
             .HasColumnName("last_name")
@@ -60,7 +63,8 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
         builder.Property(s => s.LastNameNormalized)
             .HasColumnName("last_name_normalized")
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(s => s.BirthDate)
             .HasColumnName("birth_date")

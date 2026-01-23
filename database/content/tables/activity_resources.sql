@@ -13,11 +13,11 @@ CREATE TABLE IF NOT EXISTS content.activity_resources (
     
     -- 2. Business Data
     resource_name   TEXT NOT NULL,
-    resource_type   TEXT NOT NULL, -- 'image', 'video', 'audio', 'document'
-    media_file_id   UUID NOT NULL, -- FK to assets.media_files(file_id)
+    resource_type_id SMALLINT NOT NULL, -- FK to content.resource_types
+    media_file_id   INTEGER NOT NULL, -- FK to assets.media_files(file_id)
     display_order   INTEGER NOT NULL DEFAULT 0,
     is_required     BOOLEAN NOT NULL DEFAULT FALSE, -- Required for activity completion
-    usage_context   TEXT, -- 'instruction', 'question', 'answer', 'feedback'
+    usage_context_id SMALLINT, -- FK to content.usage_contexts (nullable)
     
     -- 2.1. Normalized columns for search
     resource_name_normalized TEXT GENERATED ALWAYS AS (LOWER(immutable_unaccent(resource_name))) STORED,
@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS content.activity_resources (
     CONSTRAINT fk_activity_resources_activity FOREIGN KEY (activity_id)
         REFERENCES content.activities (activity_id),
     
+    CONSTRAINT fk_activity_resources_resource_type FOREIGN KEY (resource_type_id)
+        REFERENCES content.resource_types (resource_type_id),
+    
+    CONSTRAINT fk_activity_resources_usage_context FOREIGN KEY (usage_context_id)
+        REFERENCES content.usage_contexts (usage_context_id),
+    
     CONSTRAINT fk_activity_resources_media FOREIGN KEY (media_file_id)
         REFERENCES assets.media_files (file_id),
     
@@ -49,13 +55,14 @@ CREATE TABLE IF NOT EXISTS content.activity_resources (
         REFERENCES identity.app_users (user_id),
 
     CONSTRAINT ck_activity_resources_name CHECK (LENGTH(resource_name) >= 2),
-    CONSTRAINT ck_activity_resources_type CHECK (resource_type IN ('image', 'video', 'audio', 'document'))
+    CONSTRAINT ck_activity_resources_config_is_object CHECK (resource_config IS NULL OR jsonb_typeof(resource_config) = 'object')
 );
 
 -- 6. Indexes
 CREATE INDEX IF NOT EXISTS idx_activity_resources_activity ON content.activity_resources(activity_id);
 CREATE INDEX IF NOT EXISTS idx_activity_resources_media ON content.activity_resources(media_file_id);
-CREATE INDEX IF NOT EXISTS idx_activity_resources_type ON content.activity_resources(resource_type);
+CREATE INDEX IF NOT EXISTS idx_activity_resources_resource_type ON content.activity_resources(resource_type_id);
+CREATE INDEX IF NOT EXISTS idx_activity_resources_usage_context ON content.activity_resources(usage_context_id);
 CREATE INDEX IF NOT EXISTS idx_activity_resources_name_normalized ON content.activity_resources(resource_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_activity_resources_published ON content.activity_resources(is_published) WHERE is_published = TRUE;
 CREATE INDEX IF NOT EXISTS idx_activity_resources_deleted_at ON content.activity_resources(deleted_at) WHERE deleted_at IS NULL;
@@ -79,11 +86,17 @@ CREATE TRIGGER trg_activity_resources_updated_at
 BEFORE UPDATE ON content.activity_resources
 FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
--- 10. Metadata (Documentation)
+-- 10. No RLS (Content is shared across tenants)
+-- Activity resources are global learning content library used by all schools.
+-- Tenant isolation happens at student_progress level (which students access which activities).
+
+-- 11. Metadata (Documentation)
 COMMENT ON TABLE content.activity_resources IS 'Activity resources: Links activities to media files (images, videos, audio, documents)';
 COMMENT ON COLUMN content.activity_resources.resource_id IS 'INTERNAL PK: Int. Never expose to API';
 COMMENT ON COLUMN content.activity_resources.resource_uuid IS 'EXTERNAL ID: UUID exposed to Frontend/API';
-COMMENT ON COLUMN content.activity_resources.media_file_id IS 'FK to assets.media_files: Ensures referential integrity';
-COMMENT ON COLUMN content.activity_resources.usage_context IS 'How the resource is used: instruction, question, answer, feedback';
-COMMENT ON COLUMN content.activity_resources.resource_config IS 'JSON: {"autoplay": true, "loop": false, "caption": "...", "thumbnail_time": 5}';
+COMMENT ON COLUMN content.activity_resources.resource_type_id IS 'FK to content.resource_types lookup table';
+COMMENT ON COLUMN content.activity_resources.usage_context_id IS 'FK to content.usage_contexts lookup table (nullable)';
+COMMENT ON COLUMN content.activity_resources.media_file_id IS 'FK to assets.media_files (internal file_id): Ensures referential integrity';
+COMMENT ON COLUMN content.activity_resources.resource_config IS 'JSON: {"autoplay": true, "loop": false, "caption": "...", "thumbnail_time": 5}. Structure varies by resource_type_id.';
+COMMENT ON COLUMN content.activity_resources.is_required IS 'Whether this resource must be viewed/interacted with for activity completion';
 COMMENT ON COLUMN content.activity_resources.is_required IS 'Whether this resource must be viewed/interacted with for activity completion';
