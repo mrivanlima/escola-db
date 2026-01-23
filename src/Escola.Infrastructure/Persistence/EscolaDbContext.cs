@@ -21,6 +21,8 @@ public class EscolaDbContext : DbContext
     public DbSet<AppUser> AppUsers => Set<AppUser>();
 
     // Assets Schema
+    public DbSet<MediaCategory> MediaCategories => Set<MediaCategory>();
+    public DbSet<MimeType> MimeTypes => Set<MimeType>();
     public DbSet<MediaFile> MediaFiles => Set<MediaFile>();
 
     // School Schema

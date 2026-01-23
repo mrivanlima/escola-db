@@ -45,6 +45,23 @@ using Escola.Application.UseCases.StudentGuardians.CreateStudentGuardian;
 using Escola.Application.UseCases.StudentGuardians.GetStudentGuardian;
 using Escola.Application.UseCases.StudentGuardians.GetStudentGuardians;
 using Escola.Application.UseCases.StudentGuardians.UpdateStudentGuardian;
+using Escola.Application.Assets.MediaFiles;
+using Escola.Application.Content.Modules;
+using Escola.Application.Content.Activities;
+using Escola.Application.Content.ActivityResources;
+using Escola.Application.Game.StudentProgress;
+using Escola.Application.Game.Badges;
+using Escola.Application.Game.StudentBadges;
+using Escola.Application.UseCases.MediaCategories.GetMediaCategory;
+using Escola.Application.UseCases.MediaCategories.GetMediaCategories;
+using Escola.Application.UseCases.MimeTypes.GetMimeType;
+using Escola.Application.UseCases.MimeTypes.GetMimeTypes;
+using Escola.Infrastructure.UseCases.MediaCategories;
+using Escola.Infrastructure.UseCases.MimeTypes;
+using Escola.Infrastructure.UseCases.Assets.MediaFiles;
+using Escola.Infrastructure.Handlers.Game.StudentProgress;
+using Escola.Infrastructure.Handlers.Game.Badges;
+using Escola.Infrastructure.Handlers.Game.StudentBadges;
 using Escola.Application.Validators.School;
 using Escola.Infrastructure.Persistence;
 using Escola.Infrastructure.Services;
@@ -171,6 +188,57 @@ builder.Services.AddScoped<IGetStudentGuardianHandler, Escola.Infrastructure.Use
 builder.Services.AddScoped<IGetStudentGuardiansHandler, Escola.Infrastructure.UseCases.StudentGuardians.GetStudentGuardiansHandler>();
 builder.Services.AddScoped<IUpdateStudentGuardianHandler, Escola.Infrastructure.UseCases.StudentGuardians.UpdateStudentGuardianHandler>();
 
+// Register Phase 3: Assets handlers
+// MediaCategory handlers
+builder.Services.AddScoped<IGetMediaCategoryHandler, GetMediaCategoryHandler>();
+builder.Services.AddScoped<IGetMediaCategoriesHandler, GetMediaCategoriesHandler>();
+
+// MimeType handlers
+builder.Services.AddScoped<IGetMimeTypeHandler, GetMimeTypeHandler>();
+builder.Services.AddScoped<IGetMimeTypesHandler, GetMimeTypesHandler>();
+
+// MediaFile handlers
+builder.Services.AddScoped<ICreateMediaFileHandler, CreateMediaFileHandler>();
+builder.Services.AddScoped<IGetMediaFileHandler, GetMediaFileHandler>();
+builder.Services.AddScoped<IGetMediaFilesHandler, GetMediaFilesHandler>();
+builder.Services.AddScoped<IUpdateMediaFileHandler, UpdateMediaFileHandler>();
+
+// Register Phase 4: Content handlers
+// Module handlers
+builder.Services.AddScoped<ICreateModuleHandler, Escola.Infrastructure.UseCases.Content.Modules.CreateModuleHandler>();
+builder.Services.AddScoped<IGetModuleHandler, Escola.Infrastructure.UseCases.Content.Modules.GetModuleHandler>();
+builder.Services.AddScoped<IGetModulesHandler, Escola.Infrastructure.UseCases.Content.Modules.GetModulesHandler>();
+builder.Services.AddScoped<IUpdateModuleHandler, Escola.Infrastructure.UseCases.Content.Modules.UpdateModuleHandler>();
+
+// Activity handlers
+builder.Services.AddScoped<ICreateActivityHandler, Escola.Infrastructure.UseCases.Content.Activities.CreateActivityHandler>();
+builder.Services.AddScoped<IGetActivityHandler, Escola.Infrastructure.UseCases.Content.Activities.GetActivityHandler>();
+builder.Services.AddScoped<IGetActivitiesHandler, Escola.Infrastructure.UseCases.Content.Activities.GetActivitiesHandler>();
+builder.Services.AddScoped<IUpdateActivityHandler, Escola.Infrastructure.UseCases.Content.Activities.UpdateActivityHandler>();
+
+// ActivityResource handlers
+builder.Services.AddScoped<ICreateActivityResourceHandler, Escola.Infrastructure.UseCases.Content.ActivityResources.CreateActivityResourceHandler>();
+builder.Services.AddScoped<IGetActivityResourceHandler, Escola.Infrastructure.UseCases.Content.ActivityResources.GetActivityResourceHandler>();
+builder.Services.AddScoped<IGetActivityResourcesHandler, Escola.Infrastructure.UseCases.Content.ActivityResources.GetActivityResourcesHandler>();
+builder.Services.AddScoped<IUpdateActivityResourceHandler, Escola.Infrastructure.UseCases.Content.ActivityResources.UpdateActivityResourceHandler>();
+
+// Register Phase 5: Game handlers
+// StudentProgress handlers
+builder.Services.AddScoped<ICreateStudentProgressHandler, CreateStudentProgressHandler>();
+builder.Services.AddScoped<IGetStudentProgressHandler, GetStudentProgressHandler>();
+builder.Services.AddScoped<IGetStudentProgressListHandler, GetStudentProgressListHandler>();
+builder.Services.AddScoped<IUpdateStudentProgressHandler, UpdateStudentProgressHandler>();
+
+// Badge handlers
+builder.Services.AddScoped<ICreateBadgeHandler, CreateBadgeHandler>();
+builder.Services.AddScoped<IGetBadgeHandler, GetBadgeHandler>();
+builder.Services.AddScoped<IGetBadgesHandler, GetBadgesHandler>();
+builder.Services.AddScoped<IUpdateBadgeHandler, UpdateBadgeHandler>();
+
+// StudentBadge handlers
+builder.Services.AddScoped<IAwardStudentBadgeHandler, AwardStudentBadgeHandler>();
+builder.Services.AddScoped<IGetStudentBadgesHandler, GetStudentBadgesHandler>();
+
 // Register Health handlers
 builder.Services.AddScoped<IGetHealthHandler, Escola.Infrastructure.UseCases.Health.GetHealthHandler>();
 builder.Services.AddScoped<ICheckDatabaseHandler, Escola.Infrastructure.UseCases.Health.CheckDatabaseHandler>();
@@ -194,6 +262,25 @@ builder.Services.AddScoped<CreateStudentGuardianValidator>();
 builder.Services.AddScoped<UpdateStudentGuardianValidator>();
 builder.Services.AddScoped<CreateSchoolYearValidator>();
 builder.Services.AddScoped<UpdateSchoolYearValidator>();
+
+// Register Phase 3: Assets validators
+builder.Services.AddScoped<CreateMediaFileValidator>();
+builder.Services.AddScoped<UpdateMediaFileValidator>();
+
+// Register Phase 4: Content validators
+builder.Services.AddScoped<CreateModuleValidator>();
+builder.Services.AddScoped<UpdateModuleValidator>();
+builder.Services.AddScoped<CreateActivityValidator>();
+builder.Services.AddScoped<UpdateActivityValidator>();
+builder.Services.AddScoped<CreateActivityResourceValidator>();
+builder.Services.AddScoped<UpdateActivityResourceValidator>();
+
+// Register Phase 5: Game validators
+builder.Services.AddScoped<IValidator<CreateStudentProgressDto>, CreateStudentProgressValidator>();
+builder.Services.AddScoped<IValidator<UpdateStudentProgressDto>, UpdateStudentProgressValidator>();
+builder.Services.AddScoped<IValidator<CreateBadgeDto>, CreateBadgeValidator>();
+builder.Services.AddScoped<IValidator<UpdateBadgeDto>, UpdateBadgeValidator>();
+builder.Services.AddScoped<IValidator<AwardStudentBadgeDto>, AwardStudentBadgeValidator>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
