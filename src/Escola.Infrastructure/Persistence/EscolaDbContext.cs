@@ -41,6 +41,10 @@ public class EscolaDbContext : DbContext
     public DbSet<TeacherCertification> TeacherCertifications => Set<TeacherCertification>();
 
     // Content Schema
+    public DbSet<ModuleType> ModuleTypes => Set<ModuleType>();
+    public DbSet<ActivityType> ActivityTypes => Set<ActivityType>();
+    public DbSet<ResourceType> ResourceTypes => Set<ResourceType>();
+    public DbSet<UsageContext> UsageContexts => Set<UsageContext>();
     public DbSet<Module> Modules => Set<Module>();
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<ActivityResource> ActivityResources => Set<ActivityResource>();

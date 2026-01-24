@@ -40,9 +40,8 @@ public class ModuleConfiguration : IEntityTypeConfiguration<Module>
             .HasColumnName("description_normalized")
             .HasMaxLength(2000);
 
-        builder.Property(m => m.ModuleType)
-            .HasColumnName("module_type")
-            .HasMaxLength(50);
+        builder.Property(m => m.ModuleTypeId)
+            .HasColumnName("module_type_id");
 
         builder.Property(m => m.DifficultyLevel)
             .HasColumnName("difficulty_level");
@@ -85,6 +84,13 @@ public class ModuleConfiguration : IEntityTypeConfiguration<Module>
         builder.Property(m => m.DeletedAt)
             .HasColumnName("deleted_at");
 
+        // Relationships
+        builder.HasOne(m => m.ModuleType)
+            .WithMany(mt => mt.Modules)
+            .HasForeignKey(m => m.ModuleTypeId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_modules_module_type");
+
         // Indexes
         builder.HasIndex(m => m.ModuleUuid)
             .IsUnique()
@@ -93,8 +99,8 @@ public class ModuleConfiguration : IEntityTypeConfiguration<Module>
         builder.HasIndex(m => m.ModuleNameNormalized)
             .HasDatabaseName("idx_modules_module_name_normalized");
 
-        builder.HasIndex(m => m.ModuleType)
-            .HasDatabaseName("idx_modules_module_type");
+        builder.HasIndex(m => m.ModuleTypeId)
+            .HasDatabaseName("idx_modules_module_type_id");
 
         builder.HasIndex(m => m.DeletedAt)
             .HasDatabaseName("idx_modules_deleted_at");

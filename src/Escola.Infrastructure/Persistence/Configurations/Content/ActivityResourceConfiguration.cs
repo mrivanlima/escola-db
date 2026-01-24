@@ -36,10 +36,8 @@ public class ActivityResourceConfiguration : IEntityTypeConfiguration<ActivityRe
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(ar => ar.ResourceType)
-            .HasColumnName("resource_type")
-            .IsRequired()
-            .HasMaxLength(50);
+        builder.Property(ar => ar.ResourceTypeId)
+            .HasColumnName("resource_type_id");
 
         builder.Property(ar => ar.MediaFileId)
             .HasColumnName("media_file_id")
@@ -53,9 +51,8 @@ public class ActivityResourceConfiguration : IEntityTypeConfiguration<ActivityRe
             .IsRequired()
             .HasDefaultValue(false);
 
-        builder.Property(ar => ar.UsageContext)
-            .HasColumnName("usage_context")
-            .HasMaxLength(500);
+        builder.Property(ar => ar.UsageContextId)
+            .HasColumnName("usage_context_id");
 
         builder.Property(ar => ar.ResourceConfig)
             .HasColumnName("resource_config")
@@ -90,6 +87,19 @@ public class ActivityResourceConfiguration : IEntityTypeConfiguration<ActivityRe
             .HasConstraintName("fk_activity_resources_activity_id");
 
         builder.HasOne(ar => ar.MediaFile)
+            .WithMany(m => m.ActResourceType)
+            .WithMany(rt => rt.ActivityResources)
+            .HasForeignKey(ar => ar.ResourceTypeId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_activity_resources_resource_type");
+
+        builder.HasOne(ar => ar.UsageContext)
+            .WithMany(uc => uc.ActivityResources)
+            .HasForeignKey(ar => ar.UsageContextId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_activity_resources_usage_context");
+
+        builder.HasOne(ar => ar.MediaFile)
             .WithMany(m => m.ActivityResources)
             .HasForeignKey(ar => ar.MediaFileId)
             .OnDelete(DeleteBehavior.Restrict)
@@ -106,8 +116,11 @@ public class ActivityResourceConfiguration : IEntityTypeConfiguration<ActivityRe
         builder.HasIndex(ar => ar.MediaFileId)
             .HasDatabaseName("idx_activity_resources_media_file_id");
 
-        builder.HasIndex(ar => ar.ResourceType)
-            .HasDatabaseName("idx_activity_resources_resource_type");
+        builder.HasIndex(ar => ar.ResourceTypeId)
+            .HasDatabaseName("idx_activity_resources_resource_type_id");
+
+        builder.HasIndex(ar => ar.UsageContextId)
+            .HasDatabaseName("idx_activity_resources_usage_context_id");
 
         builder.HasIndex(ar => ar.DeletedAt)
             .HasDatabaseName("idx_activity_resources_deleted_at");

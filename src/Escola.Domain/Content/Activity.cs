@@ -41,9 +41,9 @@ public class Activity
     public string? DescriptionNormalized { get; set; }
 
     /// <summary>
-    /// Activity type (e.g., "quiz", "video", "interactive").
+    /// Activity type ID (FK to activity_types).
     /// </summary>
-    public string? ActivityType { get; set; }
+    public short? ActivityTypeId { get; set; }
 
     /// <summary>
     /// Display order for sorting within the module.
@@ -102,6 +102,7 @@ public class Activity
 
     // Navigation properties
     public virtual Module Module { get; set; } = null!;
+    public virtual ActivityType? ActivityType { get; set; }
     public virtual ICollection<ActivityResource> ActivityResources { get; set; } = new List<ActivityResource>();
     public virtual ICollection<Game.StudentProgress> StudentProgress { get; set; } = new List<Game.StudentProgress>();
 }

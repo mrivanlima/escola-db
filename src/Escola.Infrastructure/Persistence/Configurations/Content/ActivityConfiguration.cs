@@ -44,9 +44,8 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .HasColumnName("description_normalized")
             .HasMaxLength(2000);
 
-        builder.Property(a => a.ActivityType)
-            .HasColumnName("activity_type")
-            .HasMaxLength(50);
+        builder.Property(a => a.ActivityTypeId)
+            .HasColumnName("activity_type_id");
 
         builder.Property(a => a.DisplayOrder)
             .HasColumnName("display_order");
@@ -93,6 +92,12 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_activities_module_id");
 
+        builder.HasOne(a => a.ActivityType)
+            .WithMany(at => at.Activities)
+            .HasForeignKey(a => a.ActivityTypeId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_activities_activity_type");
+
         // Indexes
         builder.HasIndex(a => a.ActivityUuid)
             .IsUnique()
@@ -104,8 +109,8 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
         builder.HasIndex(a => a.ActivityNameNormalized)
             .HasDatabaseName("idx_activities_activity_name_normalized");
 
-        builder.HasIndex(a => a.ActivityType)
-            .HasDatabaseName("idx_activities_activity_type");
+        builder.HasIndex(a => a.ActivityTypeId)
+            .HasDatabaseName("idx_activities_activity_type_id");
 
         builder.HasIndex(a => a.DeletedAt)
             .HasDatabaseName("idx_activities_deleted_at");

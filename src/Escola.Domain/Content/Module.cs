@@ -36,9 +36,9 @@ public class Module
     public string? DescriptionNormalized { get; set; }
 
     /// <summary>
-    /// Module type (e.g., "math", "language", "science").
+    /// Module type ID (FK to module_types).
     /// </summary>
-    public string? ModuleType { get; set; }
+    public short? ModuleTypeId { get; set; }
 
     /// <summary>
     /// Difficulty level (1-5).
@@ -101,5 +101,6 @@ public class Module
     public DateTimeOffset? DeletedAt { get; set; }
 
     // Navigation properties
+    public virtual ModuleType? ModuleType { get; set; }
     public virtual ICollection<Activity> Activities { get; set; } = new List<Activity>();
 }

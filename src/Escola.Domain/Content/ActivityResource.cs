@@ -31,9 +31,9 @@ public class ActivityResource
     public string ResourceNameNormalized { get; set; } = string.Empty;
 
     /// <summary>
-    /// Resource type (e.g., "image", "audio", "video").
+    /// Resource type ID (FK to resource_types).
     /// </summary>
-    public string ResourceType { get; set; } = string.Empty;
+    public short? ResourceTypeId { get; set; }
 
     /// <summary>
     /// Media file ID (references the MediaFile entity).
@@ -51,9 +51,9 @@ public class ActivityResource
     public bool IsRequired { get; set; }
 
     /// <summary>
-    /// Usage context description.
+    /// Usage context ID (FK to usage_contexts).
     /// </summary>
-    public string? UsageContext { get; set; }
+    public short? UsageContextId { get; set; }
 
     /// <summary>
     /// JSON configuration for resource-specific settings.
@@ -92,5 +92,7 @@ public class ActivityResource
 
     // Navigation properties
     public virtual Activity Activity { get; set; } = null!;
+    public virtual ResourceType? ResourceType { get; set; }
+    public virtual UsageContext? UsageContext { get; set; }
     public virtual Assets.MediaFile MediaFile { get; set; } = null!;
 }
