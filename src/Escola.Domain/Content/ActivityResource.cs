@@ -33,7 +33,7 @@ public class ActivityResource
     /// <summary>
     /// Resource type ID (FK to resource_types).
     /// </summary>
-    public short? ResourceTypeId { get; set; }
+    public short ResourceTypeId { get; set; }
 
     /// <summary>
     /// Media file ID (references the MediaFile entity).
@@ -43,7 +43,7 @@ public class ActivityResource
     /// <summary>
     /// Display order for sorting.
     /// </summary>
-    public int? DisplayOrder { get; set; }
+    public int DisplayOrder { get; set; }
 
     /// <summary>
     /// Indicates if this resource is required for the activity.

@@ -60,9 +60,9 @@ public class CreateActivityResourceHandler : ICreateActivityResourceHandler
             ResourceUuid = Guid.NewGuid(),
             ActivityId = activity.ActivityId,
             ResourceName = request.Resource.ResourceName,
-            ResourceTypeId = resourceTypeId,
+            ResourceTypeId = resourceTypeId ?? (short)0,
             MediaFileId = mediaFile.FileId,
-            DisplayOrder = request.Resource.DisplayOrder,
+            DisplayOrder = request.Resource.DisplayOrder ?? 0,
             IsRequired = request.Resource.IsRequired,
             UsageContextId = usageContextId,
             ResourceConfig = request.Resource.ResourceConfig,
@@ -223,11 +223,12 @@ public class UpdateActivityResourceHandler : IUpdateActivityResourceHandler
             var resourceType = await _context.ResourceTypes
                 .Where(rt => rt.ResourceTypeCodeNormalized == typeCodeNormalized && rt.DeletedAt == null)
                 .FirstOrDefaultAsync(cancellationToken);
-            resource.ResourceTypeId = resourceType?.ResourceTypeId;
+            if (resourceType != null)
+                resource.ResourceTypeId = resourceType.ResourceTypeId;
         }
 
         if (request.Resource.DisplayOrder.HasValue)
-            resource.DisplayOrder = request.Resource.DisplayOrder;
+            resource.DisplayOrder = request.Resource.DisplayOrder.Value;
 
         if (request.Resource.IsRequired.HasValue)
             resource.IsRequired = request.Resource.IsRequired.Value;

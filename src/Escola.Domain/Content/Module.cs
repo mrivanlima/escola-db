@@ -58,7 +58,7 @@ public class Module
     /// <summary>
     /// Display order for sorting.
     /// </summary>
-    public int? DisplayOrder { get; set; }
+    public int DisplayOrder { get; set; }
 
     /// <summary>
     /// Thumbnail URL.

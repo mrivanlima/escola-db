@@ -34,10 +34,6 @@ public class StudentBadgeConfiguration : IEntityTypeConfiguration<StudentBadge>
             .HasColumnName("earned_at")
             .IsRequired();
 
-        builder.Property(sb => sb.EarnMetadata)
-            .HasColumnName("earn_metadata")
-            .HasColumnType("jsonb");
-
         builder.Property(sb => sb.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();

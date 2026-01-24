@@ -48,7 +48,6 @@ public class AwardStudentBadgeHandler : IAwardStudentBadgeHandler
             BadgeId = badge.BadgeId,
             TenantId = currentTenantId,
             EarnedAt = request.Badge.EarnedAt ?? DateTimeOffset.UtcNow,
-            EarnMetadata = request.Badge.EarnMetadata,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -69,7 +68,6 @@ public class AwardStudentBadgeHandler : IAwardStudentBadgeHandler
                 BadgeIconUrl = sb.Badge.IconUrl ?? string.Empty,
                 TenantUuid = sb.Tenant.TenantUuid,
                 EarnedAt = sb.EarnedAt,
-                EarnMetadata = sb.EarnMetadata,
                 CreatedAt = sb.CreatedAt
             })
             .FirstAsync(cancellationToken);
@@ -117,7 +115,6 @@ public class GetStudentBadgesHandler : IGetStudentBadgesHandler
                 BadgeIconUrl = sb.Badge.IconUrl ?? string.Empty,
                 TenantUuid = sb.Tenant.TenantUuid,
                 EarnedAt = sb.EarnedAt,
-                EarnMetadata = sb.EarnMetadata,
                 CreatedAt = sb.CreatedAt
             })
             .ToListAsync(cancellationToken);

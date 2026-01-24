@@ -48,7 +48,7 @@ public class Activity
     /// <summary>
     /// Display order for sorting within the module.
     /// </summary>
-    public int? DisplayOrder { get; set; }
+    public int DisplayOrder { get; set; }
 
     /// <summary>
     /// Estimated duration in minutes.
@@ -58,12 +58,12 @@ public class Activity
     /// <summary>
     /// Points reward for completing the activity.
     /// </summary>
-    public int? PointsReward { get; set; }
+    public int PointsReward { get; set; }
 
     /// <summary>
     /// JSON data specific to the activity (questions, answers, etc.).
     /// </summary>
-    public string? ActivityData { get; set; }
+    public string ActivityData { get; set; } = "{}";
 
     /// <summary>
     /// Thumbnail URL.

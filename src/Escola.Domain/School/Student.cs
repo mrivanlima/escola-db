@@ -29,12 +29,12 @@ public class Student
     /// <summary>
     /// Student's nickname/preferred name.
     /// </summary>
-    public string? Nickname { get; set; }
+    public string Nickname { get; set; } = string.Empty;
 
     /// <summary>
     /// Normalized nickname for search (lowercase, no accents).
     /// </summary>
-    public string? NicknameNormalized { get; set; }
+    public string NicknameNormalized { get; set; } = string.Empty;
 
     /// <summary>
     /// First name.

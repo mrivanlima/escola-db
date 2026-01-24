@@ -64,10 +64,6 @@ public class BadgeTypeConfiguration : IEntityTypeConfiguration<Domain.Game.Badge
             .HasColumnName("icon_name")
             .HasMaxLength(100);
 
-        builder.Property(bt => bt.ColorCode)
-            .HasColumnName("color_code")
-            .HasMaxLength(20);
-
         builder.Property(bt => bt.DisplayOrder)
             .HasColumnName("display_order")
             .IsRequired()

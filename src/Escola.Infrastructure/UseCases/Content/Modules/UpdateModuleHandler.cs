@@ -50,7 +50,7 @@ public class UpdateModuleHandler : IUpdateModuleHandler
             module.RecommendedAgeMax = request.Module.RecommendedAgeMax;
 
         if (request.Module.DisplayOrder.HasValue)
-            module.DisplayOrder = request.Module.DisplayOrder;
+            module.DisplayOrder = request.Module.DisplayOrder.Value;
 
         if (request.Module.ThumbnailUrl != null)
             module.ThumbnailUrl = request.Module.ThumbnailUrl;

@@ -56,11 +56,6 @@ public class StudentBadge
     public int? UpdatedBy { get; set; }
 
     /// <summary>
-    /// JSON metadata about how the badge was earned.
-    /// </summary>
-    public string? EarnMetadata { get; set; }
-
-    /// <summary>
     /// Soft delete timestamp.
     /// </summary>
     public DateTimeOffset? DeletedAt { get; set; }

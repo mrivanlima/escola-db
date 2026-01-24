@@ -45,10 +45,10 @@ public class CreateActivityHandler : ICreateActivityHandler
             ActivityName = request.Activity.ActivityName,
             Description = request.Activity.Description,
             ActivityTypeId = activityTypeId ?? (short)0,
-            DisplayOrder = request.Activity.DisplayOrder,
+            DisplayOrder = request.Activity.DisplayOrder ?? 0,
             EstimatedDuration = request.Activity.EstimatedDuration,
-            PointsReward = request.Activity.PointsReward,
-            ActivityData = request.Activity.ActivityData,
+            PointsReward = request.Activity.PointsReward ?? 0,
+            ActivityData = request.Activity.ActivityData ?? "{}",
             ThumbnailUrl = request.Activity.ThumbnailUrl,
             IsPublished = request.Activity.IsPublished,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -205,13 +205,13 @@ public class UpdateActivityHandler : IUpdateActivityHandler
         }
 
         if (request.Activity.DisplayOrder.HasValue)
-            activity.DisplayOrder = request.Activity.DisplayOrder;
+            activity.DisplayOrder = request.Activity.DisplayOrder.Value;
 
         if (request.Activity.EstimatedDuration.HasValue)
             activity.EstimatedDuration = request.Activity.EstimatedDuration;
 
         if (request.Activity.PointsReward.HasValue)
-            activity.PointsReward = request.Activity.PointsReward;
+            activity.PointsReward = request.Activity.PointsReward.Value;
 
         if (request.Activity.ActivityData != null)
             activity.ActivityData = request.Activity.ActivityData;

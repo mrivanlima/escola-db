@@ -46,11 +46,6 @@ public class BadgeType
     public string? IconName { get; set; }
 
     /// <summary>
-    /// Hex color for UI theming.
-    /// </summary>
-    public string? ColorCode { get; set; }
-
-    /// <summary>
     /// Display order for sorting.
     /// </summary>
     public int DisplayOrder { get; set; }

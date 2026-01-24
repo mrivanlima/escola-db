@@ -41,7 +41,7 @@ public class CreateModuleHandler : ICreateModuleHandler
             DifficultyLevel = request.Module.DifficultyLevel ?? 1,
             RecommendedAgeMin = request.Module.RecommendedAgeMin,
             RecommendedAgeMax = request.Module.RecommendedAgeMax,
-            DisplayOrder = request.Module.DisplayOrder,
+            DisplayOrder = request.Module.DisplayOrder ?? 0,
             ThumbnailUrl = request.Module.ThumbnailUrl,
             ModuleConfig = request.Module.ModuleConfig,
             IsPublished = request.Module.IsPublished,
