@@ -25,6 +25,10 @@ public class ProgressStatusConfiguration : IEntityTypeConfiguration<Domain.Game.
             .IsUnique()
             .HasDatabaseName("uq_progress_statuses_uuid");
 
+        builder.Property(ps => ps.TenantId)
+            .HasColumnName("tenant_id")
+            .IsRequired();
+
         builder.Property(ps => ps.StatusCode)
             .HasColumnName("status_code")
             .HasMaxLength(100)
@@ -100,7 +104,13 @@ public class ProgressStatusConfiguration : IEntityTypeConfiguration<Domain.Game.
             .HasFilter("deleted_at IS NULL");
 
         // Navigation
-        builder.HasMany(ps => ps.StudentProgress)
+        builder.HasOne(ps => ps.Tenant)
+            .WithMany()
+            .HasForeignKey(ps => ps.TenantId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_progress_statuses_tenant");
+
+        builder.HasMany(ps => ps.StudentProgresses)
             .WithOne(sp => sp.ProgressStatus)
             .HasForeignKey(sp => sp.StatusId)
             .HasConstraintName("fk_student_progress_status")

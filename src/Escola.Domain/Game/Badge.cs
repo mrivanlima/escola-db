@@ -38,7 +38,7 @@ public class Badge
     /// <summary>
     /// Badge type ID (FK to badge_types).
     /// </summary>
-    public short? BadgeTypeId { get; set; }
+    public short BadgeTypeId { get; set; }
 
     /// <summary>
     /// Icon URL.
@@ -48,22 +48,22 @@ public class Badge
     /// <summary>
     /// Rarity ID (FK to badge_rarities).
     /// </summary>
-    public short? RarityId { get; set; }
+    public short RarityId { get; set; }
 
     /// <summary>
     /// Points value of the badge.
     /// </summary>
-    public int? PointsValue { get; set; }
+    public int PointsValue { get; set; }
 
     /// <summary>
     /// JSON criteria for unlocking the badge.
     /// </summary>
-    public string? UnlockCriteria { get; set; }
+    public string UnlockCriteria { get; set; } = string.Empty;
 
     /// <summary>
     /// Display order for sorting.
     /// </summary>
-    public int? DisplayOrder { get; set; }
+    public int DisplayOrder { get; set; }
 
     /// <summary>
     /// Indicates if the badge is active.

@@ -38,12 +38,12 @@ public class Module
     /// <summary>
     /// Module type ID (FK to module_types).
     /// </summary>
-    public short? ModuleTypeId { get; set; }
+    public short ModuleTypeId { get; set; }
 
     /// <summary>
-    /// Difficulty level (1-5).
+    /// Difficulty level (1-10).
     /// </summary>
-    public int? DifficultyLevel { get; set; }
+    public int DifficultyLevel { get; set; }
 
     /// <summary>
     /// Recommended minimum age.

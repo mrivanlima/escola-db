@@ -27,13 +27,24 @@ public class CreateActivityHandler : ICreateActivityHandler
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException($"Module with UUID {request.Activity.ModuleUuid} not found");
 
+        // Resolve ActivityType code to FK
+        short? activityTypeId = null;
+        if (!string.IsNullOrWhiteSpace(request.Activity.ActivityType))
+        {
+            var typeCodeNormalized = request.Activity.ActivityType.ToLowerInvariant();
+            var activityType = await _context.ActivityTypes
+                .Where(at => at.ActivityTypeCodeNormalized == typeCodeNormalized && at.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            activityTypeId = activityType?.ActivityTypeId;
+        }
+
         var activity = new Activity
         {
             ActivityUuid = Guid.NewGuid(),
             ModuleId = module.ModuleId,
             ActivityName = request.Activity.ActivityName,
             Description = request.Activity.Description,
-            ActivityType = request.Activity.ActivityType,
+            ActivityTypeId = activityTypeId ?? (short)0,
             DisplayOrder = request.Activity.DisplayOrder,
             EstimatedDuration = request.Activity.EstimatedDuration,
             PointsReward = request.Activity.PointsReward,
@@ -47,15 +58,21 @@ public class CreateActivityHandler : ICreateActivityHandler
         _context.Activities.Add(activity);
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Re-query with ActivityType join
+        var activityWithType = await _context.Activities
+            .Include(a => a.ActivityType)
+            .Where(a => a.ActivityId == activity.ActivityId)
+            .FirstOrDefaultAsync(cancellationToken);
+
         var dto = new ActivityDto
         {
-            ActivityUuid = activity.ActivityUuid,
+            ActivityUuid = activityWithType!.ActivityUuid,
             ModuleUuid = module.ModuleUuid,
             ModuleName = module.ModuleName,
-            ActivityName = activity.ActivityName,
-            Description = activity.Description,
-            ActivityType = activity.ActivityType,
-            DisplayOrder = activity.DisplayOrder,
+            ActivityName = activityWithType.ActivityName,
+            Description = activityWithType.Description,
+            ActivityType = activityWithType.ActivityType != null ? activityWithType.ActivityType.ActivityTypeCode : null,
+            DisplayOrder = activityWithType.DisplayOrder,
             EstimatedDuration = activity.EstimatedDuration,
             PointsReward = activity.PointsReward,
             ActivityData = activity.ActivityData,
@@ -82,6 +99,7 @@ public class GetActivityHandler : IGetActivityHandler
     {
         var activity = await _context.Activities
             .Include(a => a.Module)
+            .Include(a => a.ActivityType)
             .Where(a => a.ActivityUuid == request.ActivityUuid)
             .Select(a => new ActivityDto
             {
@@ -90,7 +108,7 @@ public class GetActivityHandler : IGetActivityHandler
                 ModuleName = a.Module.ModuleName,
                 ActivityName = a.ActivityName,
                 Description = a.Description,
-                ActivityType = a.ActivityType,
+                ActivityType = a.ActivityType != null ? a.ActivityType.ActivityTypeCode : null,
                 DisplayOrder = a.DisplayOrder,
                 EstimatedDuration = a.EstimatedDuration,
                 PointsReward = a.PointsReward,
@@ -118,7 +136,7 @@ public class GetActivitiesHandler : IGetActivitiesHandler
 
     public async Task<GetActivitiesResponse> Handle(GetActivitiesRequest request, CancellationToken cancellationToken)
     {
-        var query = _context.Activities.Include(a => a.Module).AsQueryable();
+        var query = _context.Activities.Include(a => a.Module).Include(a => a.ActivityType).AsQueryable();
 
         if (request.ModuleUuid.HasValue)
         {
@@ -134,7 +152,7 @@ public class GetActivitiesHandler : IGetActivitiesHandler
                 ModuleName = a.Module.ModuleName,
                 ActivityName = a.ActivityName,
                 Description = a.Description,
-                ActivityType = a.ActivityType,
+                ActivityType = a.ActivityType != null ? a.ActivityType.ActivityTypeCode : null,
                 DisplayOrder = a.DisplayOrder,
                 EstimatedDuration = a.EstimatedDuration,
                 PointsReward = a.PointsReward,
@@ -178,7 +196,13 @@ public class UpdateActivityHandler : IUpdateActivityHandler
             activity.Description = request.Activity.Description;
 
         if (request.Activity.ActivityType != null)
-            activity.ActivityType = request.Activity.ActivityType;
+        {
+            var typeCodeNormalized = request.Activity.ActivityType.ToLowerInvariant();
+            var activityType = await _context.ActivityTypes
+                .Where(at => at.ActivityTypeCodeNormalized == typeCodeNormalized && at.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            activity.ActivityTypeId = activityType?.ActivityTypeId ?? activity.ActivityTypeId;
+        }
 
         if (request.Activity.DisplayOrder.HasValue)
             activity.DisplayOrder = request.Activity.DisplayOrder;
@@ -203,15 +227,22 @@ public class UpdateActivityHandler : IUpdateActivityHandler
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Re-query with ActivityType join
+        var activityWithType = await _context.Activities
+            .Include(a => a.Module)
+            .Include(a => a.ActivityType)
+            .Where(a => a.ActivityId == activity.ActivityId)
+            .FirstOrDefaultAsync(cancellationToken);
+
         var dto = new ActivityDto
         {
-            ActivityUuid = activity.ActivityUuid,
-            ModuleUuid = activity.Module.ModuleUuid,
-            ModuleName = activity.Module.ModuleName,
-            ActivityName = activity.ActivityName,
-            Description = activity.Description,
-            ActivityType = activity.ActivityType,
-            DisplayOrder = activity.DisplayOrder,
+            ActivityUuid = activityWithType!.ActivityUuid,
+            ModuleUuid = activityWithType.Module.ModuleUuid,
+            ModuleName = activityWithType.Module.ModuleName,
+            ActivityName = activityWithType.ActivityName,
+            Description = activityWithType.Description,
+            ActivityType = activityWithType.ActivityType != null ? activityWithType.ActivityType.ActivityTypeCode : null,
+            DisplayOrder = activityWithType.DisplayOrder,
             EstimatedDuration = activity.EstimatedDuration,
             PointsReward = activity.PointsReward,
             ActivityData = activity.ActivityData,

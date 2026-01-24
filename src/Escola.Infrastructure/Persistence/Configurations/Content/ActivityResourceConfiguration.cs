@@ -86,8 +86,7 @@ public class ActivityResourceConfiguration : IEntityTypeConfiguration<ActivityRe
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_activity_resources_activity_id");
 
-        builder.HasOne(ar => ar.MediaFile)
-            .WithMany(m => m.ActResourceType)
+        builder.HasOne(ar => ar.ResourceType)
             .WithMany(rt => rt.ActivityResources)
             .HasForeignKey(ar => ar.ResourceTypeId)
             .OnDelete(DeleteBehavior.Restrict)

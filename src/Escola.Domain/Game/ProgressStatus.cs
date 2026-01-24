@@ -16,6 +16,11 @@ public class ProgressStatus
     public Guid StatusUuid { get; set; }
 
     /// <summary>
+    /// Tenant ID for multi-tenancy.
+    /// </summary>
+    public int TenantId { get; set; }
+
+    /// <summary>
     /// Status code (e.g., 'not_started', 'in_progress', 'completed').
     /// </summary>
     public string StatusCode { get; set; } = string.Empty;
@@ -86,5 +91,6 @@ public class ProgressStatus
     public DateTimeOffset? DeletedAt { get; set; }
 
     // Navigation properties
-    public virtual ICollection<StudentProgress> StudentProgress { get; set; } = new List<StudentProgress>();
+    public virtual Identity.Tenant Tenant { get; set; } = null!;
+    public virtual ICollection<StudentProgress> StudentProgresses { get; set; } = new List<StudentProgress>();
 }

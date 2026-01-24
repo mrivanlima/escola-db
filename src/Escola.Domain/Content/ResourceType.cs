@@ -61,6 +61,11 @@ public class ResourceType
     public int DisplayOrder { get; set; }
 
     /// <summary>
+    /// Indicates if this resource type is active.
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
     /// Timestamp when created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

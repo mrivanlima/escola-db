@@ -32,10 +32,16 @@ public class UpdateModuleHandler : IUpdateModuleHandler
             module.Description = request.Module.Description;
 
         if (request.Module.ModuleType != null)
-            module.ModuleType = request.Module.ModuleType;
+        {
+            var typeCodeNormalized = request.Module.ModuleType.ToLowerInvariant();
+            var moduleType = await _context.ModuleTypes
+                .Where(mt => mt.ModuleTypeCodeNormalized == typeCodeNormalized && mt.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            module.ModuleTypeId = moduleType?.ModuleTypeId ?? module.ModuleTypeId;
+        }
 
         if (request.Module.DifficultyLevel.HasValue)
-            module.DifficultyLevel = request.Module.DifficultyLevel;
+            module.DifficultyLevel = request.Module.DifficultyLevel.Value;
 
         if (request.Module.RecommendedAgeMin.HasValue)
             module.RecommendedAgeMin = request.Module.RecommendedAgeMin;
@@ -60,21 +66,27 @@ public class UpdateModuleHandler : IUpdateModuleHandler
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Re-query with ModuleType join
+        var moduleWithType = await _context.Modules
+            .Include(m => m.ModuleType)
+            .Where(m => m.ModuleId == module.ModuleId)
+            .FirstOrDefaultAsync(cancellationToken);
+
         var dto = new ModuleDto
         {
-            ModuleUuid = module.ModuleUuid,
-            ModuleName = module.ModuleName,
-            Description = module.Description,
-            ModuleType = module.ModuleType,
-            DifficultyLevel = module.DifficultyLevel,
-            RecommendedAgeMin = module.RecommendedAgeMin,
-            RecommendedAgeMax = module.RecommendedAgeMax,
-            DisplayOrder = module.DisplayOrder,
-            ThumbnailUrl = module.ThumbnailUrl,
-            ModuleConfig = module.ModuleConfig,
-            IsPublished = module.IsPublished,
-            CreatedAt = module.CreatedAt,
-            UpdatedAt = module.UpdatedAt
+            ModuleUuid = moduleWithType!.ModuleUuid,
+            ModuleName = moduleWithType.ModuleName,
+            Description = moduleWithType.Description,
+            ModuleType = moduleWithType.ModuleType != null ? moduleWithType.ModuleType.ModuleTypeCode : null,
+            DifficultyLevel = moduleWithType.DifficultyLevel,
+            RecommendedAgeMin = moduleWithType.RecommendedAgeMin,
+            RecommendedAgeMax = moduleWithType.RecommendedAgeMax,
+            DisplayOrder = moduleWithType.DisplayOrder,
+            ThumbnailUrl = moduleWithType.ThumbnailUrl,
+            ModuleConfig = moduleWithType.ModuleConfig,
+            IsPublished = moduleWithType.IsPublished,
+            CreatedAt = moduleWithType.CreatedAt,
+            UpdatedAt = moduleWithType.UpdatedAt
         };
 
         return new UpdateModuleResponse(dto);

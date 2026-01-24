@@ -8,7 +8,7 @@ public class StudentProgress
     /// <summary>
     /// Internal database ID.
     /// </summary>
-    public int ProgressId { get; set; }
+    public long ProgressId { get; set; }
 
     /// <summary>
     /// External UUID for API exposure.

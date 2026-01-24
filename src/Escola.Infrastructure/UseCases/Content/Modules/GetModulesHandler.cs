@@ -16,13 +16,14 @@ public class GetModulesHandler : IGetModulesHandler
     public async Task<GetModulesResponse> Handle(GetModulesRequest request, CancellationToken cancellationToken)
     {
         var modules = await _context.Modules
+            .Include(m => m.ModuleType)
             .OrderBy(m => m.DisplayOrder).ThenBy(m => m.ModuleName)
             .Select(m => new ModuleDto
             {
                 ModuleUuid = m.ModuleUuid,
                 ModuleName = m.ModuleName,
                 Description = m.Description,
-                ModuleType = m.ModuleType,
+                ModuleType = m.ModuleType != null ? m.ModuleType.ModuleTypeCode : null,
                 DifficultyLevel = m.DifficultyLevel,
                 RecommendedAgeMin = m.RecommendedAgeMin,
                 RecommendedAgeMax = m.RecommendedAgeMax,

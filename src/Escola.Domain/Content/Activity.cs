@@ -43,7 +43,7 @@ public class Activity
     /// <summary>
     /// Activity type ID (FK to activity_types).
     /// </summary>
-    public short? ActivityTypeId { get; set; }
+    public short ActivityTypeId { get; set; }
 
     /// <summary>
     /// Display order for sorting within the module.

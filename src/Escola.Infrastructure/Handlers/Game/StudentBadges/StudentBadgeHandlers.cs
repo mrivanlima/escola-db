@@ -47,7 +47,7 @@ public class AwardStudentBadgeHandler : IAwardStudentBadgeHandler
             StudentId = student.StudentId,
             BadgeId = badge.BadgeId,
             TenantId = currentTenantId,
-            EarnedAt = request.Badge.EarnedAt ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            EarnedAt = request.Badge.EarnedAt ?? DateTimeOffset.UtcNow,
             EarnMetadata = request.Badge.EarnMetadata,
             CreatedAt = DateTimeOffset.UtcNow
         };

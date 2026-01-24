@@ -21,6 +21,28 @@ public class CreateBadgeHandler : ICreateBadgeHandler
     {
         var currentUserId = _currentUserService.GetCurrentUserId();
 
+        // Resolve BadgeType FK if provided
+        short? badgeTypeId = null;
+        if (!string.IsNullOrWhiteSpace(request.Badge.BadgeType))
+        {
+            var typeCodeNormalized = request.Badge.BadgeType.ToLowerInvariant();
+            var badgeType = await _context.BadgeTypes
+                .Where(bt => bt.TypeCodeNormalized == typeCodeNormalized && bt.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            badgeTypeId = badgeType?.BadgeTypeId;
+        }
+
+        // Resolve Rarity FK if provided
+        short? rarityId = null;
+        if (!string.IsNullOrWhiteSpace(request.Badge.Rarity))
+        {
+            var rarityCodeNormalized = request.Badge.Rarity.ToLowerInvariant();
+            var rarity = await _context.BadgeRarities
+                .Where(br => br.RarityCodeNormalized == rarityCodeNormalized && br.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            rarityId = rarity?.RarityId;
+        }
+
         var badge = new Badge
         {
             BadgeUuid = Guid.NewGuid(),
@@ -28,12 +50,12 @@ public class CreateBadgeHandler : ICreateBadgeHandler
             BadgeNameNormalized = request.Badge.BadgeName.ToUpperInvariant(),
             Description = request.Badge.Description,
             DescriptionNormalized = request.Badge.Description?.ToUpperInvariant(),
-            BadgeType = request.Badge.BadgeType,
+            BadgeTypeId = badgeTypeId ?? (short)0,
             IconUrl = request.Badge.IconUrl,
-            Rarity = request.Badge.Rarity,
-            PointsValue = request.Badge.PointsRequired,
-            UnlockCriteria = request.Badge.Criteria,
-            DisplayOrder = request.Badge.DisplayOrder,
+            RarityId = rarityId ?? (short)0,
+            PointsValue = request.Badge.PointsRequired ?? 0,
+            UnlockCriteria = request.Badge.Criteria ?? "{}",
+            DisplayOrder = request.Badge.DisplayOrder ?? 0,
             IsActive = request.Badge.IsActive,
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedBy = currentUserId
@@ -42,21 +64,26 @@ public class CreateBadgeHandler : ICreateBadgeHandler
         _context.Badges.Add(badge);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var dto = new BadgeDto
-        {
-            BadgeUuid = badge.BadgeUuid,
-            BadgeName = badge.BadgeName,
-            Description = badge.Description,
-            BadgeType = badge.BadgeType,
-            IconUrl = badge.IconUrl,
-            Rarity = badge.Rarity,
-            PointsRequired = badge.PointsValue,
-            Criteria = badge.UnlockCriteria,
-            DisplayOrder = badge.DisplayOrder,
-            IsActive = badge.IsActive,
-            CreatedAt = badge.CreatedAt,
-            UpdatedAt = badge.UpdatedAt
-        };
+        var dto = await _context.Badges
+            .Where(b => b.BadgeId == badge.BadgeId)
+            .Include(b => b.BadgeType)
+            .Include(b => b.BadgeRarity)
+            .Select(b => new BadgeDto
+            {
+                BadgeUuid = b.BadgeUuid,
+                BadgeName = b.BadgeName,
+                Description = b.Description,
+                BadgeType = b.BadgeType != null ? b.BadgeType.TypeCode : null,
+                IconUrl = b.IconUrl,
+                Rarity = b.BadgeRarity != null ? b.BadgeRarity.RarityCode : null,
+                PointsRequired = b.PointsValue,
+                Criteria = b.UnlockCriteria,
+                DisplayOrder = b.DisplayOrder,
+                IsActive = b.IsActive,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt
+            })
+            .FirstAsync(cancellationToken);
 
         return new CreateBadgeResponse(dto);
     }
@@ -75,14 +102,16 @@ public class GetBadgeHandler : IGetBadgeHandler
     {
         var dto = await _context.Badges
             .Where(b => b.BadgeUuid == request.BadgeUuid && b.DeletedAt == null)
+            .Include(b => b.BadgeType)
+            .Include(b => b.BadgeRarity)
             .Select(b => new BadgeDto
             {
                 BadgeUuid = b.BadgeUuid,
                 BadgeName = b.BadgeName,
                 Description = b.Description,
-                BadgeType = b.BadgeType,
+                BadgeType = b.BadgeType != null ? b.BadgeType.TypeCode : null,
                 IconUrl = b.IconUrl,
-                Rarity = b.Rarity,
+                Rarity = b.BadgeRarity != null ? b.BadgeRarity.RarityCode : null,
                 PointsRequired = b.PointsValue,
                 Criteria = b.UnlockCriteria,
                 DisplayOrder = b.DisplayOrder,
@@ -110,6 +139,8 @@ public class GetBadgesHandler : IGetBadgesHandler
     {
         var dtos = await _context.Badges
             .Where(b => b.DeletedAt == null)
+            .Include(b => b.BadgeType)
+            .Include(b => b.BadgeRarity)
             .OrderBy(b => b.DisplayOrder)
             .ThenBy(b => b.BadgeName)
             .Select(b => new BadgeDto
@@ -117,9 +148,9 @@ public class GetBadgesHandler : IGetBadgesHandler
                 BadgeUuid = b.BadgeUuid,
                 BadgeName = b.BadgeName,
                 Description = b.Description,
-                BadgeType = b.BadgeType,
+                BadgeType = b.BadgeType != null ? b.BadgeType.TypeCode : null,
                 IconUrl = b.IconUrl,
-                Rarity = b.Rarity,
+                Rarity = b.BadgeRarity != null ? b.BadgeRarity.RarityCode : null,
                 PointsRequired = b.PointsValue,
                 Criteria = b.UnlockCriteria,
                 DisplayOrder = b.DisplayOrder,
@@ -167,7 +198,12 @@ public class UpdateBadgeHandler : IUpdateBadgeHandler
 
         if (!string.IsNullOrWhiteSpace(request.Badge.BadgeType))
         {
-            badge.BadgeType = request.Badge.BadgeType;
+            var typeCodeNormalized = request.Badge.BadgeType.ToLowerInvariant();
+            var badgeType = await _context.BadgeTypes
+                .Where(bt => bt.TypeCodeNormalized == typeCodeNormalized && bt.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (badgeType != null)
+                badge.BadgeTypeId = badgeType.BadgeTypeId;
         }
 
         if (!string.IsNullOrWhiteSpace(request.Badge.IconUrl))
@@ -177,7 +213,12 @@ public class UpdateBadgeHandler : IUpdateBadgeHandler
 
         if (!string.IsNullOrWhiteSpace(request.Badge.Rarity))
         {
-            badge.Rarity = request.Badge.Rarity;
+            var rarityCodeNormalized = request.Badge.Rarity.ToLowerInvariant();
+            var rarity = await _context.BadgeRarities
+                .Where(br => br.RarityCodeNormalized == rarityCodeNormalized && br.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (rarity != null)
+                badge.RarityId = rarity.RarityId;
         }
 
         if (request.Badge.PointsRequired.HasValue)
@@ -205,21 +246,26 @@ public class UpdateBadgeHandler : IUpdateBadgeHandler
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var dto = new BadgeDto
-        {
-            BadgeUuid = badge.BadgeUuid,
-            BadgeName = badge.BadgeName,
-            Description = badge.Description,
-            BadgeType = badge.BadgeType,
-            IconUrl = badge.IconUrl,
-            Rarity = badge.Rarity,
-            PointsRequired = badge.PointsValue,
-            Criteria = badge.UnlockCriteria,
-            DisplayOrder = badge.DisplayOrder,
-            IsActive = badge.IsActive,
-            CreatedAt = badge.CreatedAt,
-            UpdatedAt = badge.UpdatedAt
-        };
+        var dto = await _context.Badges
+            .Where(b => b.BadgeId == badge.BadgeId)
+            .Include(b => b.BadgeType)
+            .Include(b => b.BadgeRarity)
+            .Select(b => new BadgeDto
+            {
+                BadgeUuid = b.BadgeUuid,
+                BadgeName = b.BadgeName,
+                Description = b.Description,
+                BadgeType = b.BadgeType != null ? b.BadgeType.TypeCode : null,
+                IconUrl = b.IconUrl,
+                Rarity = b.BadgeRarity != null ? b.BadgeRarity.RarityCode : null,
+                PointsRequired = b.PointsValue,
+                Criteria = b.UnlockCriteria,
+                DisplayOrder = b.DisplayOrder,
+                IsActive = b.IsActive,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt
+            })
+            .FirstAsync(cancellationToken);
 
         return new UpdateBadgeResponse(dto);
     }

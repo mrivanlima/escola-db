@@ -56,6 +56,11 @@ public class BadgeType
     public int DisplayOrder { get; set; }
 
     /// <summary>
+    /// Indicates if this badge type is active.
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
     /// Timestamp when created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

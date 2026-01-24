@@ -16,13 +16,14 @@ public class GetModuleHandler : IGetModuleHandler
     public async Task<GetModuleResponse> Handle(GetModuleRequest request, CancellationToken cancellationToken)
     {
         var module = await _context.Modules
+            .Include(m => m.ModuleType)
             .Where(m => m.ModuleUuid == request.ModuleUuid)
             .Select(m => new ModuleDto
             {
                 ModuleUuid = m.ModuleUuid,
                 ModuleName = m.ModuleName,
                 Description = m.Description,
-                ModuleType = m.ModuleType,
+                ModuleType = m.ModuleType != null ? m.ModuleType.ModuleTypeCode : null,
                 DifficultyLevel = m.DifficultyLevel,
                 RecommendedAgeMin = m.RecommendedAgeMin,
                 RecommendedAgeMax = m.RecommendedAgeMax,

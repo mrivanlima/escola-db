@@ -8,7 +8,7 @@ public class StudentBadge
     /// <summary>
     /// Internal database ID.
     /// </summary>
-    public int StudentBadgeId { get; set; }
+    public long StudentBadgeId { get; set; }
 
     /// <summary>
     /// Student ID.
@@ -28,17 +28,37 @@ public class StudentBadge
     /// <summary>
     /// Date when the badge was earned.
     /// </summary>
-    public DateOnly EarnedAt { get; set; }
+    public DateTimeOffset EarnedAt { get; set; }
 
     /// <summary>
-    /// JSON metadata about how the badge was earned.
+    /// Optional link to the progress entry that triggered the badge.
     /// </summary>
-    public string? EarnMetadata { get; set; }
+    public long? ProgressId { get; set; }
 
     /// <summary>
     /// Timestamp when the record was created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>
+    /// User ID who created this record.
+    /// </summary>
+    public int? CreatedBy { get; set; }
+
+    /// <summary>
+    /// Timestamp when the record was last updated.
+    /// </summary>
+    public DateTimeOffset? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// User ID who last updated this record.
+    /// </summary>
+    public int? UpdatedBy { get; set; }
+
+    /// <summary>
+    /// JSON metadata about how the badge was earned.
+    /// </summary>
+    public string? EarnMetadata { get; set; }
 
     /// <summary>
     /// Soft delete timestamp.
@@ -49,4 +69,5 @@ public class StudentBadge
     public virtual School.Student Student { get; set; } = null!;
     public virtual Badge Badge { get; set; } = null!;
     public virtual Identity.Tenant Tenant { get; set; } = null!;
+    public virtual StudentProgress? Progress { get; set; }
 }

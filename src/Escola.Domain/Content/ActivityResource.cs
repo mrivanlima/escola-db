@@ -38,7 +38,7 @@ public class ActivityResource
     /// <summary>
     /// Media file ID (references the MediaFile entity).
     /// </summary>
-    public Guid MediaFileId { get; set; }
+    public int MediaFileId { get; set; }
 
     /// <summary>
     /// Display order for sorting.

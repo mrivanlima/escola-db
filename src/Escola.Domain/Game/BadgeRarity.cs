@@ -56,6 +56,11 @@ public class BadgeRarity
     public int DisplayOrder { get; set; }
 
     /// <summary>
+    /// Indicates if this badge rarity is active.
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
     /// Timestamp when created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

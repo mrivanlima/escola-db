@@ -33,19 +33,26 @@ public class CreateStudentProgressHandler : ICreateStudentProgressHandler
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException($"Activity not found with UUID {request.Progress.ActivityUuid}");
 
+        var statusCodeNormalized = request.Progress.Status.ToLowerInvariant();
+        var status = await _context.ProgressStatuses
+            .Where(ps => ps.StatusCodeNormalized == statusCodeNormalized && ps.DeletedAt == null)
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException($"Progress status not found with code {request.Progress.Status}");
+
         var progress = new Domain.Game.StudentProgress
         {
             ProgressUuid = Guid.NewGuid(),
             StudentId = student.StudentId,
             ActivityId = activity.ActivityId,
             TenantId = currentTenantId,
-            Status = request.Progress.Status,
+            StatusId = status.StatusId,
             Score = request.Progress.Score,
-            Attempts = request.Progress.Attempts,
+            AttemptsCount = request.Progress.Attempts,
             TimeSpentSeconds = request.Progress.TimeSpentSeconds,
             ProgressData = request.Progress.ProgressData,
-            CompletedAt = request.Progress.CompletedAt,
-            CreatedAt = DateTimeOffset.UtcNow
+            CompletionDate = request.Progress.CompletedAt.HasValue ? request.Progress.CompletedAt.Value.ToDateTime(TimeOnly.MinValue) : null,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedBy = _currentUserService.GetCurrentUserId()
         };
 
         _context.StudentProgress.Add(progress);
@@ -56,6 +63,7 @@ public class CreateStudentProgressHandler : ICreateStudentProgressHandler
             .Include(p => p.Student)
             .Include(p => p.Activity)
             .Include(p => p.Tenant)
+            .Include(p => p.ProgressStatus)
             .Select(p => new StudentProgressDto
             {
                 ProgressUuid = p.ProgressUuid,
@@ -64,12 +72,12 @@ public class CreateStudentProgressHandler : ICreateStudentProgressHandler
                 ActivityUuid = p.Activity.ActivityUuid,
                 ActivityName = p.Activity.ActivityName,
                 TenantUuid = p.Tenant.TenantUuid,
-                Status = p.Status,
+                Status = p.ProgressStatus.StatusCode,
                 Score = p.Score,
-                Attempts = p.Attempts,
+                Attempts = p.AttemptsCount,
                 TimeSpentSeconds = p.TimeSpentSeconds,
                 ProgressData = p.ProgressData,
-                CompletedAt = p.CompletedAt,
+                CompletedAt = p.CompletionDate.HasValue ? DateOnly.FromDateTime(p.CompletionDate.Value.DateTime) : null,
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt
             })
@@ -100,6 +108,7 @@ public class GetStudentProgressHandler : IGetStudentProgressHandler
             .Include(p => p.Student)
             .Include(p => p.Activity)
             .Include(p => p.Tenant)
+            .Include(p => p.ProgressStatus)
             .Select(p => new StudentProgressDto
             {
                 ProgressUuid = p.ProgressUuid,
@@ -108,12 +117,12 @@ public class GetStudentProgressHandler : IGetStudentProgressHandler
                 ActivityUuid = p.Activity.ActivityUuid,
                 ActivityName = p.Activity.ActivityName,
                 TenantUuid = p.Tenant.TenantUuid,
-                Status = p.Status,
+                Status = p.ProgressStatus.StatusCode,
                 Score = p.Score,
-                Attempts = p.Attempts,
+                Attempts = p.AttemptsCount,
                 TimeSpentSeconds = p.TimeSpentSeconds,
                 ProgressData = p.ProgressData,
-                CompletedAt = p.CompletedAt,
+                CompletedAt = p.CompletionDate.HasValue ? DateOnly.FromDateTime(p.CompletionDate.Value.DateTime) : null,
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt
             })
@@ -157,6 +166,8 @@ public class GetStudentProgressListHandler : IGetStudentProgressListHandler
             query = query.Where(p => p.Activity.ActivityUuid == request.ActivityUuid.Value);
         }
 
+        query = query.Include(p => p.ProgressStatus);
+
         var dtos = await query
             .OrderByDescending(p => p.CreatedAt)
             .Select(p => new StudentProgressDto
@@ -167,12 +178,12 @@ public class GetStudentProgressListHandler : IGetStudentProgressListHandler
                 ActivityUuid = p.Activity.ActivityUuid,
                 ActivityName = p.Activity.ActivityName,
                 TenantUuid = p.Tenant.TenantUuid,
-                Status = p.Status,
+                Status = p.ProgressStatus.StatusCode,
                 Score = p.Score,
-                Attempts = p.Attempts,
+                Attempts = p.AttemptsCount,
                 TimeSpentSeconds = p.TimeSpentSeconds,
                 ProgressData = p.ProgressData,
-                CompletedAt = p.CompletedAt,
+                CompletedAt = p.CompletionDate.HasValue ? DateOnly.FromDateTime(p.CompletionDate.Value.DateTime) : null,
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt
             })
@@ -206,7 +217,12 @@ public class UpdateStudentProgressHandler : IUpdateStudentProgressHandler
 
         if (!string.IsNullOrWhiteSpace(request.Progress.Status))
         {
-            progress.Status = request.Progress.Status;
+            var statusCodeNormalized = request.Progress.Status.ToLowerInvariant();
+            var status = await _context.ProgressStatuses
+                .Where(ps => ps.StatusCodeNormalized == statusCodeNormalized && ps.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new InvalidOperationException($"Progress status not found with code {request.Progress.Status}");
+            progress.StatusId = status.StatusId;
         }
 
         if (request.Progress.Score.HasValue)
@@ -216,7 +232,7 @@ public class UpdateStudentProgressHandler : IUpdateStudentProgressHandler
 
         if (request.Progress.Attempts.HasValue)
         {
-            progress.Attempts = request.Progress.Attempts.Value;
+            progress.AttemptsCount = request.Progress.Attempts.Value;
         }
 
         if (request.Progress.TimeSpentSeconds.HasValue)
@@ -231,10 +247,11 @@ public class UpdateStudentProgressHandler : IUpdateStudentProgressHandler
 
         if (request.Progress.CompletedAt.HasValue)
         {
-            progress.CompletedAt = request.Progress.CompletedAt.Value;
+            progress.CompletionDate = request.Progress.CompletedAt.Value.ToDateTime(TimeOnly.MinValue);
         }
 
         progress.UpdatedAt = DateTimeOffset.UtcNow;
+        progress.UpdatedBy = currentUserId;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -243,6 +260,7 @@ public class UpdateStudentProgressHandler : IUpdateStudentProgressHandler
             .Include(p => p.Student)
             .Include(p => p.Activity)
             .Include(p => p.Tenant)
+            .Include(p => p.ProgressStatus)
             .Select(p => new StudentProgressDto
             {
                 ProgressUuid = p.ProgressUuid,
@@ -251,12 +269,12 @@ public class UpdateStudentProgressHandler : IUpdateStudentProgressHandler
                 ActivityUuid = p.Activity.ActivityUuid,
                 ActivityName = p.Activity.ActivityName,
                 TenantUuid = p.Tenant.TenantUuid,
-                Status = p.Status,
+                Status = p.ProgressStatus.StatusCode,
                 Score = p.Score,
-                Attempts = p.Attempts,
+                Attempts = p.AttemptsCount,
                 TimeSpentSeconds = p.TimeSpentSeconds,
                 ProgressData = p.ProgressData,
-                CompletedAt = p.CompletedAt,
+                CompletedAt = p.CompletionDate.HasValue ? DateOnly.FromDateTime(p.CompletionDate.Value.DateTime) : null,
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt
             })

@@ -33,16 +33,38 @@ public class CreateActivityResourceHandler : ICreateActivityResourceHandler
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException($"MediaFile with UUID {request.Resource.MediaFileUuid} not found");
 
+        // Resolve ResourceType code to FK
+        short? resourceTypeId = null;
+        if (!string.IsNullOrWhiteSpace(request.Resource.ResourceType))
+        {
+            var typeCodeNormalized = request.Resource.ResourceType.ToLowerInvariant();
+            var resourceType = await _context.ResourceTypes
+                .Where(rt => rt.ResourceTypeCodeNormalized == typeCodeNormalized && rt.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            resourceTypeId = resourceType?.ResourceTypeId;
+        }
+
+        // Resolve UsageContext code to FK
+        short? usageContextId = null;
+        if (!string.IsNullOrWhiteSpace(request.Resource.UsageContext))
+        {
+            var contextCodeNormalized = request.Resource.UsageContext.ToLowerInvariant();
+            var usageContext = await _context.UsageContexts
+                .Where(uc => uc.ContextCodeNormalized == contextCodeNormalized && uc.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            usageContextId = usageContext?.UsageContextId;
+        }
+
         var resource = new ActivityResource
         {
             ResourceUuid = Guid.NewGuid(),
             ActivityId = activity.ActivityId,
             ResourceName = request.Resource.ResourceName,
-            ResourceType = request.Resource.ResourceType,
-            MediaFileId = mediaFile.FileUuid,
+            ResourceTypeId = resourceTypeId,
+            MediaFileId = mediaFile.FileId,
             DisplayOrder = request.Resource.DisplayOrder,
             IsRequired = request.Resource.IsRequired,
-            UsageContext = request.Resource.UsageContext,
+            UsageContextId = usageContextId,
             ResourceConfig = request.Resource.ResourceConfig,
             IsPublished = request.Resource.IsPublished,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -52,19 +74,26 @@ public class CreateActivityResourceHandler : ICreateActivityResourceHandler
         _context.ActivityResources.Add(resource);
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Re-query with ResourceType and UsageContext joins
+        var resourceWithLookups = await _context.ActivityResources
+            .Include(ar => ar.ResourceType)
+            .Include(ar => ar.UsageContext)
+            .Where(ar => ar.ResourceId == resource.ResourceId)
+            .FirstOrDefaultAsync(cancellationToken);
+
         var dto = new ActivityResourceDto
         {
-            ResourceUuid = resource.ResourceUuid,
+            ResourceUuid = resourceWithLookups!.ResourceUuid,
             ActivityUuid = activity.ActivityUuid,
             ActivityName = activity.ActivityName,
-            ResourceName = resource.ResourceName,
-            ResourceType = resource.ResourceType,
+            ResourceName = resourceWithLookups.ResourceName,
+            ResourceType = resourceWithLookups.ResourceType != null ? resourceWithLookups.ResourceType.ResourceTypeCode : null,
             MediaFileUuid = mediaFile.FileUuid,
             MediaFileName = mediaFile.OriginalName,
-            DisplayOrder = resource.DisplayOrder,
-            IsRequired = resource.IsRequired,
-            UsageContext = resource.UsageContext,
-            ResourceConfig = resource.ResourceConfig,
+            DisplayOrder = resourceWithLookups.DisplayOrder,
+            IsRequired = resourceWithLookups.IsRequired,
+            UsageContext = resourceWithLookups.UsageContext != null ? resourceWithLookups.UsageContext.ContextCode : null,
+            ResourceConfig = resourceWithLookups.ResourceConfig,
             IsPublished = resource.IsPublished,
             CreatedAt = resource.CreatedAt,
             UpdatedAt = resource.UpdatedAt
@@ -88,6 +117,8 @@ public class GetActivityResourceHandler : IGetActivityResourceHandler
         var resource = await _context.ActivityResources
             .Include(ar => ar.Activity)
             .Include(ar => ar.MediaFile)
+            .Include(ar => ar.ResourceType)
+            .Include(ar => ar.UsageContext)
             .Where(ar => ar.ResourceUuid == request.ResourceUuid)
             .Select(ar => new ActivityResourceDto
             {
@@ -95,12 +126,12 @@ public class GetActivityResourceHandler : IGetActivityResourceHandler
                 ActivityUuid = ar.Activity.ActivityUuid,
                 ActivityName = ar.Activity.ActivityName,
                 ResourceName = ar.ResourceName,
-                ResourceType = ar.ResourceType,
+                ResourceType = ar.ResourceType != null ? ar.ResourceType.ResourceTypeCode : null,
                 MediaFileUuid = ar.MediaFile.FileUuid,
                 MediaFileName = ar.MediaFile.OriginalName,
                 DisplayOrder = ar.DisplayOrder,
                 IsRequired = ar.IsRequired,
-                UsageContext = ar.UsageContext,
+                UsageContext = ar.UsageContext != null ? ar.UsageContext.ContextCode : null,
                 ResourceConfig = ar.ResourceConfig,
                 IsPublished = ar.IsPublished,
                 CreatedAt = ar.CreatedAt,
@@ -127,6 +158,8 @@ public class GetActivityResourcesHandler : IGetActivityResourcesHandler
         var query = _context.ActivityResources
             .Include(ar => ar.Activity)
             .Include(ar => ar.MediaFile)
+            .Include(ar => ar.ResourceType)
+            .Include(ar => ar.UsageContext)
             .AsQueryable();
 
         if (request.ActivityUuid.HasValue)
@@ -142,12 +175,12 @@ public class GetActivityResourcesHandler : IGetActivityResourcesHandler
                 ActivityUuid = ar.Activity.ActivityUuid,
                 ActivityName = ar.Activity.ActivityName,
                 ResourceName = ar.ResourceName,
-                ResourceType = ar.ResourceType,
+                ResourceType = ar.ResourceType != null ? ar.ResourceType.ResourceTypeCode : null,
                 MediaFileUuid = ar.MediaFile.FileUuid,
                 MediaFileName = ar.MediaFile.OriginalName,
                 DisplayOrder = ar.DisplayOrder,
                 IsRequired = ar.IsRequired,
-                UsageContext = ar.UsageContext,
+                UsageContext = ar.UsageContext != null ? ar.UsageContext.ContextCode : null,
                 ResourceConfig = ar.ResourceConfig,
                 IsPublished = ar.IsPublished,
                 CreatedAt = ar.CreatedAt,
@@ -185,7 +218,13 @@ public class UpdateActivityResourceHandler : IUpdateActivityResourceHandler
             resource.ResourceName = request.Resource.ResourceName;
 
         if (!string.IsNullOrWhiteSpace(request.Resource.ResourceType))
-            resource.ResourceType = request.Resource.ResourceType;
+        {
+            var typeCodeNormalized = request.Resource.ResourceType.ToLowerInvariant();
+            var resourceType = await _context.ResourceTypes
+                .Where(rt => rt.ResourceTypeCodeNormalized == typeCodeNormalized && rt.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            resource.ResourceTypeId = resourceType?.ResourceTypeId;
+        }
 
         if (request.Resource.DisplayOrder.HasValue)
             resource.DisplayOrder = request.Resource.DisplayOrder;
@@ -194,7 +233,13 @@ public class UpdateActivityResourceHandler : IUpdateActivityResourceHandler
             resource.IsRequired = request.Resource.IsRequired.Value;
 
         if (request.Resource.UsageContext != null)
-            resource.UsageContext = request.Resource.UsageContext;
+        {
+            var contextCodeNormalized = request.Resource.UsageContext.ToLowerInvariant();
+            var usageContext = await _context.UsageContexts
+                .Where(uc => uc.ContextCodeNormalized == contextCodeNormalized && uc.DeletedAt == null)
+                .FirstOrDefaultAsync(cancellationToken);
+            resource.UsageContextId = usageContext?.UsageContextId;
+        }
 
         if (request.Resource.ResourceConfig != null)
             resource.ResourceConfig = request.Resource.ResourceConfig;
@@ -207,19 +252,28 @@ public class UpdateActivityResourceHandler : IUpdateActivityResourceHandler
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Re-query with ResourceType and UsageContext joins
+        var resourceWithLookups = await _context.ActivityResources
+            .Include(ar => ar.Activity)
+            .Include(ar => ar.MediaFile)
+            .Include(ar => ar.ResourceType)
+            .Include(ar => ar.UsageContext)
+            .Where(ar => ar.ResourceId == resource.ResourceId)
+            .FirstOrDefaultAsync(cancellationToken);
+
         var dto = new ActivityResourceDto
         {
-            ResourceUuid = resource.ResourceUuid,
-            ActivityUuid = resource.Activity.ActivityUuid,
-            ActivityName = resource.Activity.ActivityName,
-            ResourceName = resource.ResourceName,
-            ResourceType = resource.ResourceType,
-            MediaFileUuid = resource.MediaFile.FileUuid,
-            MediaFileName = resource.MediaFile.OriginalName,
-            DisplayOrder = resource.DisplayOrder,
-            IsRequired = resource.IsRequired,
-            UsageContext = resource.UsageContext,
-            ResourceConfig = resource.ResourceConfig,
+            ResourceUuid = resourceWithLookups!.ResourceUuid,
+            ActivityUuid = resourceWithLookups.Activity.ActivityUuid,
+            ActivityName = resourceWithLookups.Activity.ActivityName,
+            ResourceName = resourceWithLookups.ResourceName,
+            ResourceType = resourceWithLookups.ResourceType != null ? resourceWithLookups.ResourceType.ResourceTypeCode : null,
+            MediaFileUuid = resourceWithLookups.MediaFile.FileUuid,
+            MediaFileName = resourceWithLookups.MediaFile.OriginalName,
+            DisplayOrder = resourceWithLookups.DisplayOrder,
+            IsRequired = resourceWithLookups.IsRequired,
+            UsageContext = resourceWithLookups.UsageContext != null ? resourceWithLookups.UsageContext.ContextCode : null,
+            ResourceConfig = resourceWithLookups.ResourceConfig,
             IsPublished = resource.IsPublished,
             CreatedAt = resource.CreatedAt,
             UpdatedAt = resource.UpdatedAt

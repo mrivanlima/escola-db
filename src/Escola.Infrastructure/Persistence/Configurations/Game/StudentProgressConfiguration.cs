@@ -92,7 +92,7 @@ public class StudentProgressConfiguration : IEntityTypeConfiguration<StudentProg
             .HasConstraintName("fk_student_progress_tenant_id");
 
         builder.HasOne(sp => sp.ProgressStatus)
-            .WithMany(ps => ps.StudentProgress)
+            .WithMany(ps => ps.StudentProgresses)
             .HasForeignKey(sp => sp.StatusId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_student_progress_status");
