@@ -34,16 +34,15 @@ public class StudentProgressConfiguration : IEntityTypeConfiguration<StudentProg
             .HasColumnName("tenant_id")
             .IsRequired();
 
-        builder.Property(sp => sp.Status)
-            .HasColumnName("status")
-            .IsRequired()
-            .HasMaxLength(50);
+        builder.Property(sp => sp.StatusId)
+            .HasColumnName("status_id")
+            .IsRequired();
 
         builder.Property(sp => sp.Score)
             .HasColumnName("score");
 
-        builder.Property(sp => sp.Attempts)
-            .HasColumnName("attempts")
+        builder.Property(sp => sp.AttemptsCount)
+            .HasColumnName("attempts_count")
             .IsRequired()
             .HasDefaultValue(0);
 
@@ -54,15 +53,21 @@ public class StudentProgressConfiguration : IEntityTypeConfiguration<StudentProg
             .HasColumnName("progress_data")
             .HasColumnType("jsonb");
 
-        builder.Property(sp => sp.CompletedAt)
-            .HasColumnName("completed_at");
+        builder.Property(sp => sp.CompletionDate)
+            .HasColumnName("completion_date");
 
         builder.Property(sp => sp.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
 
+        builder.Property(sp => sp.CreatedBy)
+            .HasColumnName("created_by");
+
         builder.Property(sp => sp.UpdatedAt)
             .HasColumnName("updated_at");
+
+        builder.Property(sp => sp.UpdatedBy)
+            .HasColumnName("updated_by");
 
         builder.Property(sp => sp.DeletedAt)
             .HasColumnName("deleted_at");
@@ -86,6 +91,12 @@ public class StudentProgressConfiguration : IEntityTypeConfiguration<StudentProg
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_student_progress_tenant_id");
 
+        builder.HasOne(sp => sp.ProgressStatus)
+            .WithMany(ps => ps.StudentProgress)
+            .HasForeignKey(sp => sp.StatusId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_student_progress_status");
+
         // Indexes
         builder.HasIndex(sp => sp.ProgressUuid)
             .IsUnique()
@@ -97,8 +108,8 @@ public class StudentProgressConfiguration : IEntityTypeConfiguration<StudentProg
         builder.HasIndex(sp => sp.TenantId)
             .HasDatabaseName("idx_student_progress_tenant_id");
 
-        builder.HasIndex(sp => sp.Status)
-            .HasDatabaseName("idx_student_progress_status");
+        builder.HasIndex(sp => sp.StatusId)
+            .HasDatabaseName("idx_student_progress_status_id");
 
         builder.HasIndex(sp => sp.DeletedAt)
             .HasDatabaseName("idx_student_progress_deleted_at");

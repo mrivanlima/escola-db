@@ -50,6 +50,9 @@ public class EscolaDbContext : DbContext
     public DbSet<ActivityResource> ActivityResources => Set<ActivityResource>();
 
     // Game Schema
+    public DbSet<ProgressStatus> ProgressStatuses => Set<ProgressStatus>();
+    public DbSet<BadgeType> BadgeTypes => Set<BadgeType>();
+    public DbSet<BadgeRarity> BadgeRarities => Set<BadgeRarity>();
     public DbSet<StudentProgress> StudentProgress => Set<StudentProgress>();
     public DbSet<Badge> Badges => Set<Badge>();
     public DbSet<StudentBadge> StudentBadges => Set<StudentBadge>();

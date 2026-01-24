@@ -40,17 +40,15 @@ public class BadgeConfiguration : IEntityTypeConfiguration<Badge>
             .HasColumnName("description_normalized")
             .HasMaxLength(1000);
 
-        builder.Property(b => b.BadgeType)
-            .HasColumnName("badge_type")
-            .HasMaxLength(50);
+        builder.Property(b => b.BadgeTypeId)
+            .HasColumnName("badge_type_id");
 
         builder.Property(b => b.IconUrl)
             .HasColumnName("icon_url")
             .HasMaxLength(1000);
 
-        builder.Property(b => b.Rarity)
-            .HasColumnName("rarity")
-            .HasMaxLength(50);
+        builder.Property(b => b.RarityId)
+            .HasColumnName("rarity_id");
 
         builder.Property(b => b.PointsValue)
             .HasColumnName("points_value");
@@ -83,6 +81,19 @@ public class BadgeConfiguration : IEntityTypeConfiguration<Badge>
         builder.Property(b => b.DeletedAt)
             .HasColumnName("deleted_at");
 
+        // Relationships
+        builder.HasOne(b => b.BadgeType)
+            .WithMany(bt => bt.Badges)
+            .HasForeignKey(b => b.BadgeTypeId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_badges_badge_type");
+
+        builder.HasOne(b => b.BadgeRarity)
+            .WithMany(br => br.Badges)
+            .HasForeignKey(b => b.RarityId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_badges_rarity");
+
         // Indexes
         builder.HasIndex(b => b.BadgeUuid)
             .IsUnique()
@@ -91,8 +102,11 @@ public class BadgeConfiguration : IEntityTypeConfiguration<Badge>
         builder.HasIndex(b => b.BadgeNameNormalized)
             .HasDatabaseName("idx_badges_badge_name_normalized");
 
-        builder.HasIndex(b => b.BadgeType)
-            .HasDatabaseName("idx_badges_badge_type");
+        builder.HasIndex(b => b.BadgeTypeId)
+            .HasDatabaseName("idx_badges_badge_type_id");
+
+        builder.HasIndex(b => b.RarityId)
+            .HasDatabaseName("idx_badges_rarity_id");
 
         builder.HasIndex(b => b.DeletedAt)
             .HasDatabaseName("idx_badges_deleted_at");

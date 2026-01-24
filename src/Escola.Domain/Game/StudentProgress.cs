@@ -31,9 +31,9 @@ public class StudentProgress
     public int TenantId { get; set; }
 
     /// <summary>
-    /// Progress status (e.g., "not_started", "in_progress", "completed").
+    /// Progress status ID (FK to progress_statuses).
     /// </summary>
-    public string Status { get; set; } = string.Empty;
+    public short StatusId { get; set; }
 
     /// <summary>
     /// Score achieved.
@@ -43,7 +43,7 @@ public class StudentProgress
     /// <summary>
     /// Number of attempts.
     /// </summary>
-    public int Attempts { get; set; }
+    public int AttemptsCount { get; set; }
 
     /// <summary>
     /// Time spent in seconds.
@@ -58,7 +58,7 @@ public class StudentProgress
     /// <summary>
     /// Date when the activity was completed.
     /// </summary>
-    public DateOnly? CompletedAt { get; set; }
+    public DateTimeOffset? CompletionDate { get; set; }
 
     /// <summary>
     /// Timestamp when the progress was created.
@@ -66,9 +66,19 @@ public class StudentProgress
     public DateTimeOffset CreatedAt { get; set; }
 
     /// <summary>
+    /// User ID who created this record.
+    /// </summary>
+    public int? CreatedBy { get; set; }
+
+    /// <summary>
     /// Timestamp when the progress was last updated.
     /// </summary>
     public DateTimeOffset? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// User ID who last updated this record.
+    /// </summary>
+    public int? UpdatedBy { get; set; }
 
     /// <summary>
     /// Soft delete timestamp.
@@ -79,4 +89,5 @@ public class StudentProgress
     public virtual School.Student Student { get; set; } = null!;
     public virtual Content.Activity Activity { get; set; } = null!;
     public virtual Identity.Tenant Tenant { get; set; } = null!;
+    public virtual ProgressStatus ProgressStatus { get; set; } = null!;
 }

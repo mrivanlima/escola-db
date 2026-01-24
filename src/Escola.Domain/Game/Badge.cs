@@ -36,9 +36,9 @@ public class Badge
     public string? DescriptionNormalized { get; set; }
 
     /// <summary>
-    /// Badge type (e.g., "completion", "streak", "mastery").
+    /// Badge type ID (FK to badge_types).
     /// </summary>
-    public string? BadgeType { get; set; }
+    public short? BadgeTypeId { get; set; }
 
     /// <summary>
     /// Icon URL.
@@ -46,9 +46,9 @@ public class Badge
     public string? IconUrl { get; set; }
 
     /// <summary>
-    /// Rarity level (e.g., "common", "rare", "legendary").
+    /// Rarity ID (FK to badge_rarities).
     /// </summary>
-    public string? Rarity { get; set; }
+    public short? RarityId { get; set; }
 
     /// <summary>
     /// Points value of the badge.
@@ -96,5 +96,7 @@ public class Badge
     public DateTimeOffset? DeletedAt { get; set; }
 
     // Navigation properties
+    public virtual BadgeType? BadgeType { get; set; }
+    public virtual BadgeRarity? BadgeRarity { get; set; }
     public virtual ICollection<StudentBadge> StudentBadges { get; set; } = new List<StudentBadge>();
 }
